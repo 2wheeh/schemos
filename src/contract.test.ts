@@ -1,8 +1,7 @@
 import { describe, expect, test, vi } from 'vitest'
-import { cw20ExecuteSchema } from '../test/fixtures/cw20-execute.js'
-import { cw20QuerySchema } from '../test/fixtures/cw20-query.js'
 import type { CosmWasmExecuteClient, CosmWasmQueryClient } from './client.js'
 import { createTypedContract } from './contract.js'
+import { cw20ExecuteSchema, cw20QuerySchema } from './schemas/cw20/index.js'
 
 function createMockExecuteClient(): CosmWasmExecuteClient {
   return {

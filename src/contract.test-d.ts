@@ -1,10 +1,12 @@
 import type { FromSchema } from 'json-schema-to-ts'
 import { assertType, expectTypeOf, test } from 'vitest'
-import type { cw20ExecuteSchema } from '../test/fixtures/cw20-execute.js'
-import type { cw20QuerySchema } from '../test/fixtures/cw20-query.js'
 import type { CosmWasmExecuteClient, CosmWasmQueryClient } from './client.js'
 import type { TypedContract, TypedQueryContract } from './contract.js'
 import { createTypedContract } from './contract.js'
+import type {
+  cw20ExecuteSchema,
+  cw20QuerySchema,
+} from './schemas/cw20/index.js'
 
 // ---------------------------------------------------------------------------
 // Derive message types from schemas (purely at the type level)

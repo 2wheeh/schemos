@@ -1,9 +1,11 @@
 import { attest } from '@ark/attest'
 import type { FromSchema } from 'json-schema-to-ts'
 import { describe, test } from 'vitest'
-import type { cw20ExecuteSchema } from '../test/fixtures/cw20-execute.js'
-import type { cw20QuerySchema } from '../test/fixtures/cw20-query.js'
 import type { TypedContract, TypedQueryContract } from './contract.js'
+import type {
+  cw20ExecuteSchema,
+  cw20QuerySchema,
+} from './schemas/cw20/index.js'
 import type { cw20ResponseSchemas } from './schemas/cw20/responses.js'
 
 // ---------------------------------------------------------------------------
