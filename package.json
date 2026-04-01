@@ -22,6 +22,10 @@
     "./schemas": {
       "import": "./dist/schemas/index.js",
       "types": "./dist/schemas/index.d.ts"
+    },
+    "./interchain": {
+      "import": "./dist/interchain.js",
+      "types": "./dist/interchain.d.ts"
     }
   },
   "types": "./dist/index.d.ts",
