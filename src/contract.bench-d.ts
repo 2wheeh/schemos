@@ -18,12 +18,10 @@ describe('FromSchema on CosmWasm schemas', () => {
 
 describe('Message type extraction', () => {
   type ExecuteMsg = FromSchema<typeof cw20ExecuteSchema>
-  type MessageNames<T> = T extends Record<string, unknown>
-    ? keyof T & string
-    : never
-  type MessageArgs<T, K extends string> = T extends Record<K, infer V>
-    ? V
-    : never
+  type MessageNames<T> =
+    T extends Record<string, unknown> ? keyof T & string : never
+  type MessageArgs<T, K extends string> =
+    T extends Record<K, infer V> ? V : never
 
   test('extract message names from execute union', () => {
     type Result = MessageNames<ExecuteMsg>

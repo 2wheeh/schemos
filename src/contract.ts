@@ -8,9 +8,8 @@ import type { Coin, StdFee } from './types.js'
 // ---------------------------------------------------------------------------
 
 /** Extract all top-level keys from a union of single-key objects. */
-type MessageNames<T> = T extends Record<string, unknown>
-  ? keyof T & string
-  : never
+type MessageNames<T> =
+  T extends Record<string, unknown> ? keyof T & string : never
 
 /** Extract the value type for a specific key from a union. */
 type MessageArgs<T, K extends string> = T extends Record<K, infer V> ? V : never

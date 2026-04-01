@@ -71,9 +71,8 @@ test('individual message variants can be extracted from union', () => {
 // ============================================================
 // Test 3: Message name extraction at the type level
 // ============================================================
-type MessageNames<T> = T extends Record<string, unknown>
-  ? keyof T & string
-  : never
+type MessageNames<T> =
+  T extends Record<string, unknown> ? keyof T & string : never
 
 test('message names can be extracted as string literal union', () => {
   type Names = MessageNames<ExecuteMsg>
