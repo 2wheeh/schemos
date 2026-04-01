@@ -3,7 +3,7 @@ import type { CosmWasmExecuteClient, CosmWasmQueryClient } from './client.js'
 import type { Coin, StdFee } from './types.js'
 
 test('CosmWasmExecuteClient extends CosmWasmQueryClient', () => {
-  expectTypeOf<CosmWasmExecuteClient>().toMatchTypeOf<CosmWasmQueryClient>()
+  expectTypeOf<CosmWasmExecuteClient>().toExtend<CosmWasmQueryClient>()
 })
 
 test('CosmWasmQueryClient.queryContractSmart signature', () => {
