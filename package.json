@@ -2,8 +2,18 @@
   "name": "cosmore",
   "version": "0.0.1",
   "type": "module",
-  "description": "",
-  "license": "ISC",
+  "description": "Type-safe CosmWasm contract interactions, zero codegen",
+  "license": "MIT",
+  "author": "Wonhee Lee",
+  "keywords": [
+    "cosmwasm",
+    "cosmos",
+    "type-safe",
+    "json-schema",
+    "typescript",
+    "wasm",
+    "smart-contracts"
+  ],
   "scripts": {
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
