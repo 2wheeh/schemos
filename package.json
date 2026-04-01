@@ -14,6 +14,14 @@
     "wasm",
     "smart-contracts"
   ],
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "types": "./dist/index.d.ts",
+  "files": ["dist"],
   "scripts": {
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
