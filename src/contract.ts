@@ -64,7 +64,7 @@ export function createTypedContract(
   contractAddress: string,
   schemas: { execute?: JSONSchema; query: JSONSchema },
 ): TypedQueryContract<unknown> | TypedContract<unknown, unknown> {
-  const ajv = new Ajv()
+  const ajv = new Ajv({ strict: false })
 
   const validateQuery = ajv.compile(schemas.query as Record<string, unknown>)
   const validateExecute = schemas.execute
