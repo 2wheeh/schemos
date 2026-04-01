@@ -4,7 +4,6 @@ import { SigningCosmWasmClient } from '@cosmjs/cosmwasm-stargate'
 import { DirectSecp256k1HdWallet } from '@cosmjs/proto-signing'
 import { GasPrice } from '@cosmjs/stargate'
 import { describe, expect, inject, it } from 'vitest'
-import type { CosmWasmExecuteClient } from '../../src/client.js'
 import { createTypedContract } from '../../src/contract.js'
 import { cw20 } from '../../src/schemas/index.js'
 
@@ -83,11 +82,7 @@ describe('cosmore e2e: cw20 on local wasmd', () => {
   })
 
   it('executes transfer via cosmore typed contract', async () => {
-    const token = createTypedContract(
-      client as CosmWasmExecuteClient,
-      contractAddress,
-      cw20,
-    )
+    const token = createTypedContract(client, contractAddress, cw20)
 
     await token.execute(
       address,
@@ -106,11 +101,7 @@ describe('cosmore e2e: cw20 on local wasmd', () => {
   })
 
   it('executes mint via cosmore typed contract', async () => {
-    const token = createTypedContract(
-      client as CosmWasmExecuteClient,
-      contractAddress,
-      cw20,
-    )
+    const token = createTypedContract(client, contractAddress, cw20)
 
     const before = (await token.query('balance', { address })) as {
       balance: string
@@ -131,11 +122,7 @@ describe('cosmore e2e: cw20 on local wasmd', () => {
   })
 
   it('rejects invalid args at runtime before tx', async () => {
-    const token = createTypedContract(
-      client as CosmWasmExecuteClient,
-      contractAddress,
-      cw20,
-    )
+    const token = createTypedContract(client, contractAddress, cw20)
 
     await expect(
       token.execute(

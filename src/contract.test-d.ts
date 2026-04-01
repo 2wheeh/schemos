@@ -2,7 +2,7 @@ import type { FromSchema } from 'json-schema-to-ts'
 import { assertType, expectTypeOf, test } from 'vitest'
 import type { cw20ExecuteSchema } from '../test/fixtures/cw20-execute.js'
 import type { cw20QuerySchema } from '../test/fixtures/cw20-query.js'
-import type { CosmWasmExecuteClient, CosmWasmQueryClient } from './client.js'
+import type { CosmWasmQueryClient } from './client.js'
 import type { TypedContract, TypedQueryContract } from './contract.js'
 import { createTypedContract } from './contract.js'
 
@@ -95,11 +95,10 @@ test('query return type is Promise<unknown>', () => {
 // Test: createTypedContract overload resolution
 // ---------------------------------------------------------------------------
 test('createTypedContract with execute+query returns TypedContract', () => {
-  const execClient: CosmWasmExecuteClient = {
+  const queryClient: CosmWasmQueryClient = {
     queryContractSmart: async () => ({}),
-    execute: async () => ({}),
   }
-  const contract = createTypedContract(execClient, 'addr', {
+  const contract = createTypedContract(queryClient, 'addr', {
     execute: {} as typeof cw20ExecuteSchema,
     query: {} as typeof cw20QuerySchema,
   })

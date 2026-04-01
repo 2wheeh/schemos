@@ -46,7 +46,7 @@ export function createTypedContract<
   const TExecuteSchema extends JSONSchema,
   const TQuerySchema extends JSONSchema,
 >(
-  client: CosmWasmExecuteClient,
+  client: CosmWasmQueryClient,
   contractAddress: string,
   schemas: { execute: TExecuteSchema; query: TQuerySchema },
 ): TypedContract<FromSchema<TExecuteSchema>, FromSchema<TQuerySchema>>
