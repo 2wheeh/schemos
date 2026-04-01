@@ -1,6 +1,6 @@
 import type { FromSchema } from 'json-schema-to-ts'
 import { assertType, expectTypeOf, test } from 'vitest'
-import { cw20ExecuteMsg } from './cw20-execute-msg.js'
+import type { cw20ExecuteMsg } from './cw20-execute-msg.js'
 
 // ============================================================
 // Test 1: FromSchema on the full oneOf envelope
@@ -77,9 +77,7 @@ type MessageNames<T> = T extends Record<string, unknown>
 
 test('message names can be extracted as string literal union', () => {
   type Names = MessageNames<ExecuteMsg>
-  expectTypeOf<Names>().toEqualTypeOf<
-    'transfer' | 'burn' | 'send' | 'mint'
-  >()
+  expectTypeOf<Names>().toEqualTypeOf<'transfer' | 'burn' | 'send' | 'mint'>()
 })
 
 // ============================================================
