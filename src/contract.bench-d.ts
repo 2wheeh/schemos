@@ -3,7 +3,12 @@ import type { FromSchema } from 'json-schema-to-ts'
 import { describe, test } from 'vitest'
 import type { cw20ExecuteSchema } from '../test/fixtures/cw20-execute.js'
 import type { cw20QuerySchema } from '../test/fixtures/cw20-query.js'
+import type { TypedContract, TypedQueryContract } from './contract.js'
+import type { cw20ResponseSchemas } from './schemas/cw20/responses.js'
 
+// ---------------------------------------------------------------------------
+// FromSchema instantiation benchmarks
+// ---------------------------------------------------------------------------
 describe('FromSchema on CosmWasm schemas', () => {
   test('cw20 execute schema (4 messages)', () => {
     type Result = FromSchema<typeof cw20ExecuteSchema>
@@ -16,6 +21,9 @@ describe('FromSchema on CosmWasm schemas', () => {
   })
 })
 
+// ---------------------------------------------------------------------------
+// Message type extraction benchmarks
+// ---------------------------------------------------------------------------
 describe('Message type extraction', () => {
   type ExecuteMsg = FromSchema<typeof cw20ExecuteSchema>
   type MessageNames<T> =
@@ -30,6 +38,59 @@ describe('Message type extraction', () => {
 
   test('extract transfer args', () => {
     type Result = MessageArgs<ExecuteMsg, 'transfer'>
+    attest<Result>({} as Result)
+  })
+})
+
+// ---------------------------------------------------------------------------
+// Response schema resolution benchmarks
+// ---------------------------------------------------------------------------
+describe('Response schema resolution (lazy FromSchema)', () => {
+  test('resolve balance response', () => {
+    type Result = FromSchema<(typeof cw20ResponseSchemas)['balance']>
+    attest<Result>({} as Result)
+  })
+
+  test('resolve token_info response', () => {
+    type Result = FromSchema<(typeof cw20ResponseSchemas)['token_info']>
+    attest<Result>({} as Result)
+  })
+
+  test('resolve allowance response', () => {
+    type Result = FromSchema<(typeof cw20ResponseSchemas)['allowance']>
+    attest<Result>({} as Result)
+  })
+})
+
+// ---------------------------------------------------------------------------
+// Full contract type construction benchmarks
+// ---------------------------------------------------------------------------
+describe('TypedContract construction', () => {
+  type ExecuteMsg = FromSchema<typeof cw20ExecuteSchema>
+  type QueryMsg = FromSchema<typeof cw20QuerySchema>
+
+  test('TypedQueryContract without responses', () => {
+    type Result = TypedQueryContract<QueryMsg>
+    attest<Result>({} as Result)
+  })
+
+  test('TypedQueryContract with responses', () => {
+    type Result = TypedQueryContract<QueryMsg, typeof cw20ResponseSchemas>
+    attest<Result>({} as Result)
+  })
+
+  test('TypedContract without responses', () => {
+    type Result = TypedContract<ExecuteMsg, QueryMsg>
+    attest<Result>({} as Result)
+  })
+
+  test('TypedContract with responses', () => {
+    type Result = TypedContract<
+      ExecuteMsg,
+      QueryMsg,
+      unknown,
+      typeof cw20ResponseSchemas
+    >
     attest<Result>({} as Result)
   })
 })
