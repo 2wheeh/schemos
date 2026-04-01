@@ -18,15 +18,28 @@ type MessageArgs<T, K extends string> = T extends Record<K, infer V> ? V : never
 // Contract return types
 // ---------------------------------------------------------------------------
 
-export interface TypedQueryContract<TQueryMsg> {
+export interface TypedQueryContract<
+  TQueryMsg,
+  TResponses extends Record<string, JSONSchema> | undefined = undefined,
+> {
   query<K extends MessageNames<TQueryMsg>>(
     msg: K,
     args: MessageArgs<TQueryMsg, K>,
-  ): Promise<unknown>
+  ): Promise<
+    TResponses extends Record<string, JSONSchema>
+      ? K extends keyof TResponses
+        ? FromSchema<TResponses[K]>
+        : unknown
+      : unknown
+  >
 }
 
-export interface TypedContract<TExecuteMsg, TQueryMsg, TExecuteResult = unknown>
-  extends TypedQueryContract<TQueryMsg> {
+export interface TypedContract<
+  TExecuteMsg,
+  TQueryMsg,
+  TExecuteResult = unknown,
+  TResponses extends Record<string, JSONSchema> | undefined = undefined,
+> extends TypedQueryContract<TQueryMsg, TResponses> {
   execute<K extends MessageNames<TExecuteMsg>>(
     sender: string,
     msg: K,
@@ -45,30 +58,47 @@ export interface TypedContract<TExecuteMsg, TQueryMsg, TExecuteResult = unknown>
 export function createTypedContract<
   const TExecuteSchema extends JSONSchema,
   const TQuerySchema extends JSONSchema,
+  const TResponses extends Record<string, JSONSchema> | undefined = undefined,
   TExecuteResult = unknown,
 >(
   client: CosmWasmExecuteClient<TExecuteResult>,
   contractAddress: string,
-  schemas: { execute: TExecuteSchema; query: TQuerySchema },
+  schemas: {
+    execute: TExecuteSchema
+    query: TQuerySchema
+    responses?: TResponses
+  },
 ): TypedContract<
   FromSchema<TExecuteSchema>,
   FromSchema<TQuerySchema>,
-  TExecuteResult
+  TExecuteResult,
+  TResponses
 >
 
 /** Query-only contract (no execute capability). */
-export function createTypedContract<const TQuerySchema extends JSONSchema>(
+export function createTypedContract<
+  const TQuerySchema extends JSONSchema,
+  const TResponses extends Record<string, JSONSchema> | undefined = undefined,
+>(
   client: CosmWasmQueryClient,
   contractAddress: string,
-  schemas: { execute?: never; query: TQuerySchema },
-): TypedQueryContract<FromSchema<TQuerySchema>>
+  schemas: {
+    execute?: never
+    query: TQuerySchema
+    responses?: TResponses
+  },
+): TypedQueryContract<FromSchema<TQuerySchema>, TResponses>
 
 /** Implementation. */
 export function createTypedContract(
   client: CosmWasmQueryClient,
   contractAddress: string,
-  schemas: { execute?: JSONSchema; query: JSONSchema },
-): TypedQueryContract<unknown> | TypedContract<unknown, unknown> {
+  schemas: {
+    execute?: JSONSchema
+    query: JSONSchema
+    responses?: Record<string, JSONSchema>
+  },
+): any {
   const ajv = new Ajv({ validateFormats: false })
 
   const validateQuery = ajv.compile(schemas.query as Record<string, unknown>)
@@ -76,8 +106,7 @@ export function createTypedContract(
     ? ajv.compile(schemas.execute as Record<string, unknown>)
     : undefined
 
-  const contract: TypedQueryContract<unknown> &
-    Partial<TypedContract<unknown, unknown>> = {
+  const contract: Record<string, unknown> = {
     async query(msg: string, args: unknown) {
       const envelope = { [msg]: args }
       if (!validateQuery(envelope)) {
@@ -116,7 +145,5 @@ export function createTypedContract(
     }
   }
 
-  return contract as
-    | TypedQueryContract<unknown>
-    | TypedContract<unknown, unknown>
+  return contract
 }

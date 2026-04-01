@@ -142,3 +142,54 @@ test('execute result type is inferred from client', () => {
   const queryResult = contract.query('balance', { address: 'osmo1abc' })
   expectTypeOf(queryResult).toEqualTypeOf<Promise<unknown>>()
 })
+
+// ---------------------------------------------------------------------------
+// Test: query response typing with responses schema
+// ---------------------------------------------------------------------------
+test('query returns typed response when responses provided', () => {
+  const responseSchemas = {
+    balance: {
+      type: 'object',
+      required: ['balance'],
+      properties: { balance: { type: 'string' } },
+      additionalProperties: false,
+    },
+    token_info: {
+      type: 'object',
+      required: ['name', 'symbol'],
+      properties: {
+        name: { type: 'string' },
+        symbol: { type: 'string' },
+      },
+      additionalProperties: false,
+    },
+  } as const
+
+  const queryClient: CosmWasmQueryClient = {
+    queryContractSmart: async () => ({}),
+  }
+  const contract = createTypedContract(queryClient, 'addr', {
+    query: {} as typeof cw20QuerySchema,
+    responses: responseSchemas,
+  })
+
+  const balanceResult = contract.query('balance', { address: 'osmo1abc' })
+  expectTypeOf(balanceResult).toEqualTypeOf<Promise<{ balance: string }>>()
+
+  const tokenInfoResult = contract.query('token_info', {})
+  expectTypeOf(tokenInfoResult).toEqualTypeOf<
+    Promise<{ name: string; symbol: string }>
+  >()
+})
+
+test('query returns unknown when no responses provided', () => {
+  const queryClient: CosmWasmQueryClient = {
+    queryContractSmart: async () => ({}),
+  }
+  const contract = createTypedContract(queryClient, 'addr', {
+    query: {} as typeof cw20QuerySchema,
+  })
+
+  const result = contract.query('balance', { address: 'osmo1abc' })
+  expectTypeOf(result).toEqualTypeOf<Promise<unknown>>()
+})
