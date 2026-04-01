@@ -3,8 +3,10 @@ import { describe, expect, test, vi } from 'vitest'
 import type { CosmWasmExecuteClient } from '../client.js'
 import { createTypedContract } from '../contract.js'
 import {
+  cw20,
   cw20ExecuteSchema,
   cw20QuerySchema,
+  cw721,
   cw721ExecuteSchema,
   cw721QuerySchema,
 } from './index.js'
@@ -194,5 +196,40 @@ describe('createTypedContract with bundled cw721 schemas', () => {
     expect(mockClient.queryContractSmart).toHaveBeenCalledWith('osmo1nft', {
       owner_of: { token_id: '42' },
     })
+  })
+})
+
+// ---------------------------------------------------------------------------
+// Namespace spread pattern: import { cw20 } from 'cosmore/schemas'
+// ---------------------------------------------------------------------------
+describe('createTypedContract with namespace spread', () => {
+  test('cw20 namespace works with spread', async () => {
+    const mockClient: CosmWasmExecuteClient = {
+      queryContractSmart: vi.fn().mockResolvedValue({}),
+      execute: vi.fn().mockResolvedValue({}),
+    }
+    const contract = createTypedContract(mockClient, 'osmo1contract', cw20)
+    await contract.execute(
+      'osmo1sender',
+      'transfer',
+      { amount: '1000', recipient: 'osmo1abc' },
+      'auto',
+    )
+    expect(mockClient.execute).toHaveBeenCalled()
+  })
+
+  test('cw721 namespace works with spread', async () => {
+    const mockClient: CosmWasmExecuteClient = {
+      queryContractSmart: vi.fn().mockResolvedValue({}),
+      execute: vi.fn().mockResolvedValue({}),
+    }
+    const contract = createTypedContract(mockClient, 'osmo1nft', cw721)
+    await contract.execute(
+      'osmo1sender',
+      'transfer_nft',
+      { recipient: 'osmo1abc', token_id: '1' },
+      'auto',
+    )
+    expect(mockClient.execute).toHaveBeenCalled()
   })
 })

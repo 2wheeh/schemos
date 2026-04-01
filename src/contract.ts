@@ -41,13 +41,6 @@ export interface TypedContract<TExecuteMsg, TQueryMsg>
 // createTypedContract overloads
 // ---------------------------------------------------------------------------
 
-/** Query-only contract (no execute capability). */
-export function createTypedContract<const TQuerySchema extends JSONSchema>(
-  client: CosmWasmQueryClient,
-  contractAddress: string,
-  schemas: { query: TQuerySchema },
-): TypedQueryContract<FromSchema<TQuerySchema>>
-
 /** Full contract with execute + query. */
 export function createTypedContract<
   const TExecuteSchema extends JSONSchema,
@@ -57,6 +50,13 @@ export function createTypedContract<
   contractAddress: string,
   schemas: { execute: TExecuteSchema; query: TQuerySchema },
 ): TypedContract<FromSchema<TExecuteSchema>, FromSchema<TQuerySchema>>
+
+/** Query-only contract (no execute capability). */
+export function createTypedContract<const TQuerySchema extends JSONSchema>(
+  client: CosmWasmQueryClient,
+  contractAddress: string,
+  schemas: { query: TQuerySchema },
+): TypedQueryContract<FromSchema<TQuerySchema>>
 
 /** Implementation. */
 export function createTypedContract(
