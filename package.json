@@ -33,7 +33,8 @@
     "test": "vitest run",
     "test:types": "TYPES=true vitest run",
     "check": "biome check --write",
-    "build": "tsc -p tsconfig.build.json"
+    "build": "tsc -p tsconfig.build.json",
+    "test:e2e": "E2E=true vitest run"
   },
   "dependencies": {
     "ajv": "^8.18.0"
@@ -41,7 +42,11 @@
   "devDependencies": {
     "@ark/attest": "^0.56.0",
     "@biomejs/biome": "^2.4.10",
+    "@cosmjs/cosmwasm-stargate": "^0.38.1",
+    "@cosmjs/proto-signing": "^0.38.1",
+    "@cosmjs/stargate": "^0.38.1",
     "@types/node": "^24.0.0",
+    "cosmock": "^0.2.0",
     "json-schema-to-ts": "^3.1.1",
     "typescript": "~5.8.0",
     "vitest": "^4.1.2"

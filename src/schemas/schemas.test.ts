@@ -15,7 +15,7 @@ import {
 // CW20 Ajv validation
 // ---------------------------------------------------------------------------
 describe('cw20 schema Ajv validation', () => {
-  const ajv = new Ajv({ strict: false })
+  const ajv = new Ajv({ validateFormats: false })
   const validateExecute = ajv.compile(cw20ExecuteSchema)
   const validateQuery = ajv.compile(cw20QuerySchema)
 
@@ -80,7 +80,7 @@ describe('cw20 schema Ajv validation', () => {
 // CW721 Ajv validation
 // ---------------------------------------------------------------------------
 describe('cw721 schema Ajv validation', () => {
-  const ajv = new Ajv({ strict: false })
+  const ajv = new Ajv({ validateFormats: false })
   const validateExecute = ajv.compile(cw721ExecuteSchema)
   const validateQuery = ajv.compile(cw721QuerySchema)
 
