@@ -1,12 +1,12 @@
 /**
- * CW20 ExecuteMsg schema — standard fungible token.
- * Based on cosmwasm-plus/cw20-base `cargo schema` output.
+ * CW20 ExecuteMsg schema.
+ * Generated from cw-plus v2.0.0 cw20-base cargo schema output.
  */
 export const cw20ExecuteSchema = {
-  $schema: 'http://json-schema.org/draft-07/schema#',
-  title: 'ExecuteMsg',
   oneOf: [
     {
+      description:
+        'Transfer is a base message to move tokens to another account without triggering actions',
       type: 'object',
       required: ['transfer'],
       properties: {
@@ -14,8 +14,12 @@ export const cw20ExecuteSchema = {
           type: 'object',
           required: ['amount', 'recipient'],
           properties: {
-            amount: { $ref: '#/definitions/Uint128' },
-            recipient: { type: 'string' },
+            amount: {
+              $ref: '#/definitions/Uint128',
+            },
+            recipient: {
+              type: 'string',
+            },
           },
           additionalProperties: false,
         },
@@ -23,6 +27,7 @@ export const cw20ExecuteSchema = {
       additionalProperties: false,
     },
     {
+      description: 'Burn is a base message to destroy tokens forever',
       type: 'object',
       required: ['burn'],
       properties: {
@@ -30,7 +35,9 @@ export const cw20ExecuteSchema = {
           type: 'object',
           required: ['amount'],
           properties: {
-            amount: { $ref: '#/definitions/Uint128' },
+            amount: {
+              $ref: '#/definitions/Uint128',
+            },
           },
           additionalProperties: false,
         },
@@ -38,6 +45,8 @@ export const cw20ExecuteSchema = {
       additionalProperties: false,
     },
     {
+      description:
+        'Send is a base message to transfer tokens to a contract and trigger an action on the receiving contract.',
       type: 'object',
       required: ['send'],
       properties: {
@@ -45,9 +54,15 @@ export const cw20ExecuteSchema = {
           type: 'object',
           required: ['amount', 'contract', 'msg'],
           properties: {
-            amount: { $ref: '#/definitions/Uint128' },
-            contract: { type: 'string' },
-            msg: { $ref: '#/definitions/Binary' },
+            amount: {
+              $ref: '#/definitions/Uint128',
+            },
+            contract: {
+              type: 'string',
+            },
+            msg: {
+              $ref: '#/definitions/Binary',
+            },
           },
           additionalProperties: false,
         },
@@ -55,6 +70,8 @@ export const cw20ExecuteSchema = {
       additionalProperties: false,
     },
     {
+      description:
+        'Only with "approval" extension. Allows spender to access an additional amount tokens from the owner\'s (env.sender) account. If expires is Some(), overwrites current allowance expiration with this one.',
       type: 'object',
       required: ['increase_allowance'],
       properties: {
@@ -62,10 +79,21 @@ export const cw20ExecuteSchema = {
           type: 'object',
           required: ['amount', 'spender'],
           properties: {
-            amount: { $ref: '#/definitions/Uint128' },
-            spender: { type: 'string' },
+            amount: {
+              $ref: '#/definitions/Uint128',
+            },
             expires: {
-              anyOf: [{ $ref: '#/definitions/Expiration' }, { type: 'null' }],
+              anyOf: [
+                {
+                  $ref: '#/definitions/Expiration',
+                },
+                {
+                  type: 'null',
+                },
+              ],
+            },
+            spender: {
+              type: 'string',
             },
           },
           additionalProperties: false,
@@ -74,6 +102,8 @@ export const cw20ExecuteSchema = {
       additionalProperties: false,
     },
     {
+      description:
+        'Only with "approval" extension. Lowers the spender\'s access of tokens from the owner\'s (env.sender) account by amount. If expires is Some(), overwrites current allowance expiration with this one.',
       type: 'object',
       required: ['decrease_allowance'],
       properties: {
@@ -81,10 +111,21 @@ export const cw20ExecuteSchema = {
           type: 'object',
           required: ['amount', 'spender'],
           properties: {
-            amount: { $ref: '#/definitions/Uint128' },
-            spender: { type: 'string' },
+            amount: {
+              $ref: '#/definitions/Uint128',
+            },
             expires: {
-              anyOf: [{ $ref: '#/definitions/Expiration' }, { type: 'null' }],
+              anyOf: [
+                {
+                  $ref: '#/definitions/Expiration',
+                },
+                {
+                  type: 'null',
+                },
+              ],
+            },
+            spender: {
+              type: 'string',
             },
           },
           additionalProperties: false,
@@ -93,6 +134,8 @@ export const cw20ExecuteSchema = {
       additionalProperties: false,
     },
     {
+      description:
+        'Only with "approval" extension. Transfers amount tokens from owner -> recipient if `env.sender` has sufficient pre-approval.',
       type: 'object',
       required: ['transfer_from'],
       properties: {
@@ -100,9 +143,15 @@ export const cw20ExecuteSchema = {
           type: 'object',
           required: ['amount', 'owner', 'recipient'],
           properties: {
-            amount: { $ref: '#/definitions/Uint128' },
-            owner: { type: 'string' },
-            recipient: { type: 'string' },
+            amount: {
+              $ref: '#/definitions/Uint128',
+            },
+            owner: {
+              type: 'string',
+            },
+            recipient: {
+              type: 'string',
+            },
           },
           additionalProperties: false,
         },
@@ -110,6 +159,8 @@ export const cw20ExecuteSchema = {
       additionalProperties: false,
     },
     {
+      description:
+        'Only with "approval" extension. Sends amount tokens from owner -> contract if `env.sender` has sufficient pre-approval.',
       type: 'object',
       required: ['send_from'],
       properties: {
@@ -117,10 +168,18 @@ export const cw20ExecuteSchema = {
           type: 'object',
           required: ['amount', 'contract', 'msg', 'owner'],
           properties: {
-            amount: { $ref: '#/definitions/Uint128' },
-            contract: { type: 'string' },
-            msg: { $ref: '#/definitions/Binary' },
-            owner: { type: 'string' },
+            amount: {
+              $ref: '#/definitions/Uint128',
+            },
+            contract: {
+              type: 'string',
+            },
+            msg: {
+              $ref: '#/definitions/Binary',
+            },
+            owner: {
+              type: 'string',
+            },
           },
           additionalProperties: false,
         },
@@ -128,6 +187,7 @@ export const cw20ExecuteSchema = {
       additionalProperties: false,
     },
     {
+      description: 'Only with "approval" extension. Destroys tokens forever',
       type: 'object',
       required: ['burn_from'],
       properties: {
@@ -135,8 +195,12 @@ export const cw20ExecuteSchema = {
           type: 'object',
           required: ['amount', 'owner'],
           properties: {
-            amount: { $ref: '#/definitions/Uint128' },
-            owner: { type: 'string' },
+            amount: {
+              $ref: '#/definitions/Uint128',
+            },
+            owner: {
+              type: 'string',
+            },
           },
           additionalProperties: false,
         },
@@ -144,6 +208,8 @@ export const cw20ExecuteSchema = {
       additionalProperties: false,
     },
     {
+      description:
+        'Only with the "mintable" extension. If authorized, creates amount new tokens and adds to the recipient balance.',
       type: 'object',
       required: ['mint'],
       properties: {
@@ -151,8 +217,12 @@ export const cw20ExecuteSchema = {
           type: 'object',
           required: ['amount', 'recipient'],
           properties: {
-            amount: { $ref: '#/definitions/Uint128' },
-            recipient: { type: 'string' },
+            amount: {
+              $ref: '#/definitions/Uint128',
+            },
+            recipient: {
+              type: 'string',
+            },
           },
           additionalProperties: false,
         },
@@ -160,15 +230,60 @@ export const cw20ExecuteSchema = {
       additionalProperties: false,
     },
     {
+      description:
+        'Only with the "mintable" extension. The current minter may set a new minter. Setting the minter to None will remove the token\'s minter forever.',
       type: 'object',
       required: ['update_minter'],
       properties: {
         update_minter: {
           type: 'object',
           properties: {
-            new_minter: { type: ['string', 'null'] },
+            new_minter: {
+              type: ['string', 'null'],
+            },
           },
           additionalProperties: false,
+        },
+      },
+      additionalProperties: false,
+    },
+    {
+      description:
+        'Only with the "marketing" extension. If authorized, updates marketing metadata. Setting None/null for any of these will leave it unchanged. Setting Some("") will clear this field on the contract storage',
+      type: 'object',
+      required: ['update_marketing'],
+      properties: {
+        update_marketing: {
+          type: 'object',
+          properties: {
+            description: {
+              description:
+                "A longer description of the token and it's utility. Designed for tooltips or such",
+              type: ['string', 'null'],
+            },
+            marketing: {
+              description:
+                'The address (if any) who can update this data structure',
+              type: ['string', 'null'],
+            },
+            project: {
+              description: 'A URL pointing to the project behind this token.',
+              type: ['string', 'null'],
+            },
+          },
+          additionalProperties: false,
+        },
+      },
+      additionalProperties: false,
+    },
+    {
+      description:
+        'If set as the "marketing" role on the contract, upload a new URL, SVG, or PNG for the token',
+      type: 'object',
+      required: ['upload_logo'],
+      properties: {
+        upload_logo: {
+          $ref: '#/definitions/Logo',
         },
       },
       additionalProperties: false,
@@ -177,51 +292,129 @@ export const cw20ExecuteSchema = {
   definitions: {
     Binary: {
       description:
-        'Binary is a wrapper around Vec<u8> to add base64 de/serialization with serde.',
+        'Binary is a wrapper around Vec<u8> to add base64 de/serialization with serde. It also adds some helper methods to help encode inline.\n\nThis is only needed as serde-json-{core,wasm} has a horrible encoding for Vec<u8>. See also <https://github.com/CosmWasm/cosmwasm/blob/main/docs/MESSAGE_TYPES.md>.',
       type: 'string',
+    },
+    EmbeddedLogo: {
+      description:
+        'This is used to store the logo on the blockchain in an accepted format. Enforce maximum size of 5KB on all variants.',
+      oneOf: [
+        {
+          description:
+            'Store the Logo as an SVG file. The content must conform to the spec at https://en.wikipedia.org/wiki/Scalable_Vector_Graphics (The contract should do some light-weight sanity-check validation)',
+          type: 'object',
+          required: ['svg'],
+          properties: {
+            svg: {
+              $ref: '#/definitions/Binary',
+            },
+          },
+          additionalProperties: false,
+        },
+        {
+          description:
+            'Store the Logo as a PNG file. This will likely only support up to 64x64 or so within the 5KB limit.',
+          type: 'object',
+          required: ['png'],
+          properties: {
+            png: {
+              $ref: '#/definitions/Binary',
+            },
+          },
+          additionalProperties: false,
+        },
+      ],
     },
     Expiration: {
       description:
-        'Expiration represents a point in time when some event happens.',
+        'Expiration represents a point in time when some event happens. It can compare with a BlockInfo and will return is_expired() == true once the condition is hit (and for every block in the future)',
       oneOf: [
         {
+          description: 'AtHeight will expire when `env.block.height` >= height',
           type: 'object',
           required: ['at_height'],
           properties: {
-            at_height: { type: 'integer', format: 'uint64', minimum: 0 },
+            at_height: {
+              type: 'integer',
+              format: 'uint64',
+              minimum: 0,
+            },
           },
           additionalProperties: false,
         },
         {
+          description: 'AtTime will expire when `env.block.time` >= time',
           type: 'object',
           required: ['at_time'],
           properties: {
-            at_time: { $ref: '#/definitions/Timestamp' },
+            at_time: {
+              $ref: '#/definitions/Timestamp',
+            },
           },
           additionalProperties: false,
         },
         {
+          description:
+            'Never will never expire. Used to express the empty variant',
           type: 'object',
           required: ['never'],
           properties: {
-            never: { type: 'object', additionalProperties: false },
+            never: {
+              type: 'object',
+              additionalProperties: false,
+            },
+          },
+          additionalProperties: false,
+        },
+      ],
+    },
+    Logo: {
+      description:
+        'This is used for uploading logo data, or setting it in InstantiateData',
+      oneOf: [
+        {
+          description:
+            'A reference to an externally hosted logo. Must be a valid HTTP or HTTPS URL.',
+          type: 'object',
+          required: ['url'],
+          properties: {
+            url: {
+              type: 'string',
+            },
+          },
+          additionalProperties: false,
+        },
+        {
+          description:
+            'Logo content stored on the blockchain. Enforce maximum size of 5KB on all variants',
+          type: 'object',
+          required: ['embedded'],
+          properties: {
+            embedded: {
+              $ref: '#/definitions/EmbeddedLogo',
+            },
           },
           additionalProperties: false,
         },
       ],
     },
     Timestamp: {
-      description: 'A point in time in nanosecond precision.',
-      allOf: [{ $ref: '#/definitions/Uint64' }],
-    },
-    Uint64: {
       description:
-        'A thin wrapper around u64 that is using strings for JSON encoding/decoding.',
-      type: 'string',
+        'A point in time in nanosecond precision.\n\nThis type can represent times from 1970-01-01T00:00:00Z to 2554-07-21T23:34:33Z.\n\n## Examples\n\n``` # use cosmwasm_std::Timestamp; let ts = Timestamp::from_nanos(1_000_000_202); assert_eq!(ts.nanos(), 1_000_000_202); assert_eq!(ts.seconds(), 1); assert_eq!(ts.subsec_nanos(), 202);\n\nlet ts = ts.plus_seconds(2); assert_eq!(ts.nanos(), 3_000_000_202); assert_eq!(ts.seconds(), 3); assert_eq!(ts.subsec_nanos(), 202); ```',
+      allOf: [
+        {
+          $ref: '#/definitions/Uint64',
+        },
+      ],
     },
     Uint128: {
       description:
-        'A thin wrapper around u128 that is using strings for JSON encoding/decoding.',
+        'A thin wrapper around u128 that is using strings for JSON encoding/decoding, such that the full u128 range can be used for clients that convert JSON numbers to floats, like JavaScript and jq.\n\n# Examples\n\nUse `from` to create instances of this and `u128` to get the value out:\n\n``` # use cosmwasm_std::Uint128; let a = Uint128::from(123u128); assert_eq!(a.u128(), 123);\n\nlet b = Uint128::from(42u64); assert_eq!(b.u128(), 42);\n\nlet c = Uint128::from(70u32); assert_eq!(c.u128(), 70); ```',
+      type: 'string',
+    },
+    Uint64: {
+      description:
+        'A thin wrapper around u64 that is using strings for JSON encoding/decoding, such that the full u64 range can be used for clients that convert JSON numbers to floats, like JavaScript and jq.\n\n# Examples\n\nUse `from` to create instances of this and `u64` to get the value out:\n\n``` # use cosmwasm_std::Uint64; let a = Uint64::from(42u64); assert_eq!(a.u64(), 42);\n\nlet b = Uint64::from(70u32); assert_eq!(b.u64(), 70); ```',
       type: 'string',
     },
   },

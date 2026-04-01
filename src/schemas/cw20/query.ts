@@ -1,12 +1,12 @@
 /**
- * CW20 QueryMsg schema — standard fungible token.
- * Based on cosmwasm-plus/cw20-base `cargo schema` output.
+ * CW20 QueryMsg schema.
+ * Generated from cw-plus v2.0.0 cw20-base cargo schema output.
  */
 export const cw20QuerySchema = {
-  $schema: 'http://json-schema.org/draft-07/schema#',
-  title: 'QueryMsg',
   oneOf: [
     {
+      description:
+        'Returns the current balance of the given address, 0 if unset.',
       type: 'object',
       required: ['balance'],
       properties: {
@@ -14,7 +14,9 @@ export const cw20QuerySchema = {
           type: 'object',
           required: ['address'],
           properties: {
-            address: { type: 'string' },
+            address: {
+              type: 'string',
+            },
           },
           additionalProperties: false,
         },
@@ -22,30 +24,34 @@ export const cw20QuerySchema = {
       additionalProperties: false,
     },
     {
+      description:
+        'Returns metadata on the contract - name, decimals, supply, etc.',
       type: 'object',
       required: ['token_info'],
       properties: {
         token_info: {
           type: 'object',
-          properties: {},
           additionalProperties: false,
         },
       },
       additionalProperties: false,
     },
     {
+      description:
+        'Only with "mintable" extension. Returns who can mint and the hard cap on maximum tokens after minting.',
       type: 'object',
       required: ['minter'],
       properties: {
         minter: {
           type: 'object',
-          properties: {},
           additionalProperties: false,
         },
       },
       additionalProperties: false,
     },
     {
+      description:
+        'Only with "allowance" extension. Returns how much spender can use from owner account, 0 if unset.',
       type: 'object',
       required: ['allowance'],
       properties: {
@@ -53,8 +59,12 @@ export const cw20QuerySchema = {
           type: 'object',
           required: ['owner', 'spender'],
           properties: {
-            owner: { type: 'string' },
-            spender: { type: 'string' },
+            owner: {
+              type: 'string',
+            },
+            spender: {
+              type: 'string',
+            },
           },
           additionalProperties: false,
         },
@@ -62,6 +72,8 @@ export const cw20QuerySchema = {
       additionalProperties: false,
     },
     {
+      description:
+        'Only with "enumerable" extension (and "allowances") Returns all allowances this owner has approved. Supports pagination.',
       type: 'object',
       required: ['all_allowances'],
       properties: {
@@ -69,9 +81,17 @@ export const cw20QuerySchema = {
           type: 'object',
           required: ['owner'],
           properties: {
-            owner: { type: 'string' },
-            limit: { type: ['integer', 'null'], format: 'uint32', minimum: 0 },
-            start_after: { type: ['string', 'null'] },
+            limit: {
+              type: ['integer', 'null'],
+              format: 'uint32',
+              minimum: 0,
+            },
+            owner: {
+              type: 'string',
+            },
+            start_after: {
+              type: ['string', 'null'],
+            },
           },
           additionalProperties: false,
         },
@@ -79,14 +99,49 @@ export const cw20QuerySchema = {
       additionalProperties: false,
     },
     {
+      description:
+        'Only with "enumerable" extension (and "allowances") Returns all allowances this spender has been granted. Supports pagination.',
+      type: 'object',
+      required: ['all_spender_allowances'],
+      properties: {
+        all_spender_allowances: {
+          type: 'object',
+          required: ['spender'],
+          properties: {
+            limit: {
+              type: ['integer', 'null'],
+              format: 'uint32',
+              minimum: 0,
+            },
+            spender: {
+              type: 'string',
+            },
+            start_after: {
+              type: ['string', 'null'],
+            },
+          },
+          additionalProperties: false,
+        },
+      },
+      additionalProperties: false,
+    },
+    {
+      description:
+        'Only with "enumerable" extension Returns all accounts that have balances. Supports pagination.',
       type: 'object',
       required: ['all_accounts'],
       properties: {
         all_accounts: {
           type: 'object',
           properties: {
-            limit: { type: ['integer', 'null'], format: 'uint32', minimum: 0 },
-            start_after: { type: ['string', 'null'] },
+            limit: {
+              type: ['integer', 'null'],
+              format: 'uint32',
+              minimum: 0,
+            },
+            start_after: {
+              type: ['string', 'null'],
+            },
           },
           additionalProperties: false,
         },
@@ -94,24 +149,26 @@ export const cw20QuerySchema = {
       additionalProperties: false,
     },
     {
+      description:
+        'Only with "marketing" extension Returns more metadata on the contract to display in the client: - description, logo, project url, etc.',
       type: 'object',
       required: ['marketing_info'],
       properties: {
         marketing_info: {
           type: 'object',
-          properties: {},
           additionalProperties: false,
         },
       },
       additionalProperties: false,
     },
     {
+      description:
+        'Only with "marketing" extension Downloads the embedded logo data (if stored on chain). Errors if no logo data is stored for this contract.',
       type: 'object',
       required: ['download_logo'],
       properties: {
         download_logo: {
           type: 'object',
-          properties: {},
           additionalProperties: false,
         },
       },
