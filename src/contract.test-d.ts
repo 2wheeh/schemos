@@ -2,7 +2,7 @@ import type { FromSchema } from 'json-schema-to-ts'
 import { assertType, expectTypeOf, test } from 'vitest'
 import type { cw20ExecuteSchema } from '../test/fixtures/cw20-execute.js'
 import type { cw20QuerySchema } from '../test/fixtures/cw20-query.js'
-import type { CosmWasmQueryClient } from './client.js'
+import type { CosmWasmExecuteClient, CosmWasmQueryClient } from './client.js'
 import type { TypedContract, TypedQueryContract } from './contract.js'
 import { createTypedContract } from './contract.js'
 
@@ -95,10 +95,11 @@ test('query return type is Promise<unknown>', () => {
 // Test: createTypedContract overload resolution
 // ---------------------------------------------------------------------------
 test('createTypedContract with execute+query returns TypedContract', () => {
-  const queryClient: CosmWasmQueryClient = {
+  const client: CosmWasmExecuteClient = {
     queryContractSmart: async () => ({}),
+    execute: async () => ({}),
   }
-  const contract = createTypedContract(queryClient, 'addr', {
+  const contract = createTypedContract(client, 'addr', {
     execute: {} as typeof cw20ExecuteSchema,
     query: {} as typeof cw20QuerySchema,
   })
@@ -115,4 +116,29 @@ test('createTypedContract with query-only returns TypedQueryContract', () => {
   })
   expectTypeOf(contract).toHaveProperty('query')
   expectTypeOf(contract).not.toHaveProperty('execute')
+})
+
+// ---------------------------------------------------------------------------
+// Test: createTypedContract infers result types from client generics
+// ---------------------------------------------------------------------------
+test('execute result type is inferred from client', () => {
+  type ExecuteResult = { transactionHash: string }
+  const client: CosmWasmExecuteClient<ExecuteResult> = {
+    queryContractSmart: async () => ({}),
+    execute: async () => ({ transactionHash: 'abc' }),
+  }
+  const contract = createTypedContract(client, 'addr', {
+    execute: {} as typeof cw20ExecuteSchema,
+    query: {} as typeof cw20QuerySchema,
+  })
+  // Call with a specific message name to resolve the generic K
+  const result = contract.execute(
+    'sender',
+    'transfer',
+    { amount: '100', recipient: 'osmo1abc' },
+    'auto',
+  )
+  expectTypeOf(result).toEqualTypeOf<Promise<ExecuteResult>>()
+  const queryResult = contract.query('balance', { address: 'osmo1abc' })
+  expectTypeOf(queryResult).toEqualTypeOf<Promise<unknown>>()
 })

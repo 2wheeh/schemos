@@ -25,7 +25,7 @@ export interface TypedQueryContract<TQueryMsg> {
   ): Promise<unknown>
 }
 
-export interface TypedContract<TExecuteMsg, TQueryMsg>
+export interface TypedContract<TExecuteMsg, TQueryMsg, TExecuteResult = unknown>
   extends TypedQueryContract<TQueryMsg> {
   execute<K extends MessageNames<TExecuteMsg>>(
     sender: string,
@@ -34,7 +34,7 @@ export interface TypedContract<TExecuteMsg, TQueryMsg>
     fee: StdFee | 'auto',
     memo?: string,
     funds?: readonly Coin[],
-  ): Promise<unknown>
+  ): Promise<TExecuteResult>
 }
 
 // ---------------------------------------------------------------------------
@@ -45,17 +45,22 @@ export interface TypedContract<TExecuteMsg, TQueryMsg>
 export function createTypedContract<
   const TExecuteSchema extends JSONSchema,
   const TQuerySchema extends JSONSchema,
+  TExecuteResult = unknown,
 >(
-  client: CosmWasmQueryClient,
+  client: CosmWasmExecuteClient<TExecuteResult>,
   contractAddress: string,
   schemas: { execute: TExecuteSchema; query: TQuerySchema },
-): TypedContract<FromSchema<TExecuteSchema>, FromSchema<TQuerySchema>>
+): TypedContract<
+  FromSchema<TExecuteSchema>,
+  FromSchema<TQuerySchema>,
+  TExecuteResult
+>
 
 /** Query-only contract (no execute capability). */
 export function createTypedContract<const TQuerySchema extends JSONSchema>(
   client: CosmWasmQueryClient,
   contractAddress: string,
-  schemas: { query: TQuerySchema },
+  schemas: { execute?: never; query: TQuerySchema },
 ): TypedQueryContract<FromSchema<TQuerySchema>>
 
 /** Implementation. */

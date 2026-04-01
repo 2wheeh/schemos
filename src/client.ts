@@ -7,7 +7,8 @@ export interface CosmWasmQueryClient {
   ): Promise<unknown>
 }
 
-export interface CosmWasmExecuteClient extends CosmWasmQueryClient {
+export interface CosmWasmExecuteClient<TExecuteResult = unknown>
+  extends CosmWasmQueryClient {
   execute(
     sender: string,
     address: string,
@@ -15,5 +16,5 @@ export interface CosmWasmExecuteClient extends CosmWasmQueryClient {
     fee: StdFee | 'auto',
     memo?: string,
     funds?: readonly Coin[],
-  ): Promise<unknown>
+  ): Promise<TExecuteResult>
 }

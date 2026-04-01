@@ -14,12 +14,12 @@ export type SmartContractStateFn = (params: {
  * Generic sign-and-broadcast function.
  * Accepts encoded messages and returns the broadcast result.
  */
-export type SignAndBroadcastFn = (
+export type SignAndBroadcastFn<TResult = unknown> = (
   sender: string,
   messages: readonly { typeUrl: string; value: Uint8Array }[],
   fee: StdFee | 'auto',
   memo?: string,
-) => Promise<unknown>
+) => Promise<TResult>
 
 /**
  * Encodes a CosmWasm JSON message to MsgExecuteContract value bytes.
@@ -82,11 +82,11 @@ export function createQueryAdapter(
  * )
  * ```
  */
-export function createExecuteAdapter(
+export function createExecuteAdapter<TExecuteResult>(
   smartContractState: SmartContractStateFn,
-  signAndBroadcast: SignAndBroadcastFn,
+  signAndBroadcast: SignAndBroadcastFn<TExecuteResult>,
   encodeMsgExecuteContract: EncodeMsgExecuteContractFn,
-): CosmWasmExecuteClient {
+): CosmWasmExecuteClient<TExecuteResult> {
   const queryAdapter = createQueryAdapter(smartContractState)
 
   return {

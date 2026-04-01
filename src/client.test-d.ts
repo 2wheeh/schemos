@@ -52,6 +52,19 @@ test('CosmWasmExecuteClient.execute signature', () => {
   )
 })
 
+test('CosmWasmExecuteClient generic propagates execute result type', () => {
+  type ExecuteResult = { transactionHash: string }
+
+  type Client = CosmWasmExecuteClient<ExecuteResult>
+  expectTypeOf<Client['execute']>().returns.toEqualTypeOf<
+    Promise<ExecuteResult>
+  >()
+  // queryContractSmart always returns unknown regardless of client
+  expectTypeOf<Client['queryContractSmart']>().returns.toEqualTypeOf<
+    Promise<unknown>
+  >()
+})
+
 test('CosmWasmQueryClient is assignable from execute client', () => {
   // An execute client should be usable anywhere a query client is expected
   const execClient: CosmWasmExecuteClient = {
