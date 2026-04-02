@@ -80,7 +80,7 @@ describe('TypedContract construction', () => {
 
   test('TypedQueryContract without responses', () => {
     type Result = TypedQueryContract<QueryMsg>
-    attest.instantiations([57, 'instantiations'])
+    attest.instantiations([69, 'instantiations'])
     attest<Result>({} as Result)
   })
 
