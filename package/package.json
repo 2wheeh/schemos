@@ -55,7 +55,7 @@
     "interchainjs": "^1.21.0",
     "json-schema-to-ts": "^3.1.1",
     "osmojs": "16.15.0",
-    "typescript": "~5.8.0",
+    "typescript": "catalog:",
     "vitest": "^4.1.2"
   },
   "packageManager": "pnpm@10.30.3"

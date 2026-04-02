@@ -5,4 +5,9 @@ export default defineConfig({
   title: 'schemos',
   description: 'Type-safe CosmWasm contract interactions, zero codegen',
   sidebar: [{ text: 'Getting Started', link: '/' }],
+  twoslash: {
+    compilerOptions: {
+      strict: true,
+    },
+  },
 })
