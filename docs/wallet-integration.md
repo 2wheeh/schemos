@@ -169,14 +169,80 @@ function useTokenInfo(contractAddress: string) {
 }
 ```
 
+## graz
+
+[graz](https://github.com/graz-sh/graz) provides lightweight React hooks for Cosmos with cosmjs signing clients.
+
+Like cosmos-kit, cosmjs clients work directly with cosmore — **no adapter needed**:
+
+```typescript
+import { useMemo } from 'react'
+import { useAccount, useCosmWasmSigningClient } from 'graz'
+import { createTypedContract } from 'cosmore'
+import { cw20 } from 'cosmore/schemas'
+
+function useCw20(contractAddress: string) {
+  const { data: client } = useCosmWasmSigningClient()
+
+  return useMemo(() => {
+    if (!client) return null
+    return createTypedContract(client, contractAddress, cw20)
+  }, [client, contractAddress])
+}
+
+// Usage in component
+function TransferForm() {
+  const token = useCw20('osmo1contract...')
+  const { data: account } = useAccount()
+
+  const handleTransfer = async () => {
+    await token?.execute(
+      account!.bech32Address,
+      'transfer',
+      { recipient: 'osmo1...', amount: '1000' },
+      'auto',
+    )
+  }
+
+  return <button onClick={handleTransfer}>Transfer</button>
+}
+```
+
+### Query-only with graz
+
+```typescript
+import { useCosmWasmClient } from 'graz'
+import { createTypedContract } from 'cosmore'
+import { cw20 } from 'cosmore/schemas'
+
+function useTokenBalance(contractAddress: string, address: string) {
+  const { data: client } = useCosmWasmClient()
+
+  return useQuery({
+    queryKey: ['balance', contractAddress, address],
+    queryFn: async () => {
+      if (!client) throw new Error('Client not ready')
+      const token = createTypedContract(client, contractAddress, {
+        query: cw20.query,
+        responses: cw20.responses,
+      })
+      return token.query('balance', { address })
+      // Returns: { balance: string }
+    },
+    enabled: !!client,
+  })
+}
+```
+
 ## Comparison
 
-| | interchain-kit | cosmos-kit |
-|---|---|---|
-| Signing client | interchainjs | cosmjs |
-| Adapter needed | Yes (`cosmore/telescope`) | No (direct) |
-| MsgExecuteContract source | Chain telescope package | Built into cosmjs |
-| Wallet support | Keplr, Cosmostation, WalletConnect | Keplr, Leap, Cosmostation, +20 more |
-| React hooks | `useWalletManager()` | `useChain()` |
+| | interchain-kit | cosmos-kit | graz |
+|---|---|---|---|
+| Signing client | interchainjs | cosmjs | cosmjs |
+| Adapter needed | Yes (`cosmore/telescope`) | No (direct) | No (direct) |
+| MsgExecuteContract source | Chain telescope package | Built into cosmjs | Built into cosmjs |
+| Wallet support | Keplr, Cosmostation, WalletConnect | Keplr, Leap, Cosmostation, +20 more | Keplr, Leap, Cosmostation, WalletConnect, +more |
+| React hooks | `useWalletManager()` | `useChain()` | `useCosmWasmSigningClient()` |
+| Bundle size | Larger (interchainjs) | Medium | Lightweight |
 
-Both approaches give you the same cosmore DX — type-safe execute/query with autocomplete and runtime validation. The difference is only in how the signing client is obtained and whether an adapter is needed.
+All approaches give you the same cosmore DX — type-safe execute/query with autocomplete and runtime validation. The difference is only in how the signing client is obtained and whether an adapter is needed.
