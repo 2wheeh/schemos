@@ -1,24 +1,4 @@
 {
-  "include": ["src", "test"],
-  "compilerOptions": {
-    "strict": true,
-    "useDefineForClassFields": true,
-    "noFallthroughCasesInSwitch": true,
-    "noImplicitReturns": true,
-    "useUnknownInCatchVariables": true,
-    "noImplicitOverride": true,
-    "noUnusedLocals": true,
-    "noUnusedParameters": true,
-    "exactOptionalPropertyTypes": true,
-    "noUncheckedIndexedAccess": true,
-    "forceConsistentCasingInFileNames": true,
-    "verbatimModuleSyntax": true,
-    "moduleResolution": "NodeNext",
-    "module": "NodeNext",
-    "target": "ES2021",
-    "lib": ["ES2022"],
-    "skipLibCheck": true,
-    "noErrorTruncation": true,
-    "noEmit": true
-  }
+  "files": [],
+  "references": [{ "path": "./package" }, { "path": "./site" }]
 }
