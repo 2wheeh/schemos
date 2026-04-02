@@ -1,0 +1,89 @@
+# cosmjs
+
+`SigningCosmWasmClient` works directly with schemos — no adapter needed.
+
+## Execute + Query
+
+```typescript twoslash
+// @moduleResolution: bundler
+// @module: esnext
+import { createTypedContract } from 'schemos'
+import type { CosmWasmExecuteClient } from 'schemos'
+import { cw20 } from 'schemos/schemas'
+
+// SigningCosmWasmClient satisfies CosmWasmExecuteClient
+declare const client: CosmWasmExecuteClient
+const contractAddress = 'osmo1...'
+
+const token = createTypedContract(client, contractAddress, cw20)
+
+// Message names autocomplete, fields are type-checked
+await token.execute(
+  'osmo1sender',
+  'transfer',
+  { recipient: 'osmo1...', amount: '1000' },
+  'auto',
+)
+
+// Return type inferred from response schema
+const { balance } = await token.query('balance', { address: 'osmo1...' })
+//      ^?
+```
+
+## Query-only
+
+Use `CosmWasmClient` (no signing) for read-only access:
+
+```typescript twoslash
+// @moduleResolution: bundler
+// @module: esnext
+import { createTypedContract } from 'schemos'
+import type { CosmWasmQueryClient } from 'schemos'
+import { cw20 } from 'schemos/schemas'
+
+declare const client: CosmWasmQueryClient
+
+const token = createTypedContract(client, 'osmo1...', {
+  query: cw20.query,
+  responses: cw20.responses,
+})
+
+// query() available with typed responses
+const { balance } = await token.query('balance', { address: 'osmo1...' })
+//      ^?
+
+// execute() does not exist on query-only contracts
+```
+
+## Full Example
+
+```typescript
+import { SigningCosmWasmClient } from '@cosmjs/cosmwasm-stargate'
+import { DirectSecp256k1HdWallet } from '@cosmjs/proto-signing'
+import { GasPrice } from '@cosmjs/stargate'
+import { createTypedContract } from 'schemos'
+import { cw20 } from 'schemos/schemas'
+
+// 1. Connect with cosmjs
+const wallet = await DirectSecp256k1HdWallet.fromMnemonic(mnemonic)
+const client = await SigningCosmWasmClient.connectWithSigner(
+  rpcEndpoint,
+  wallet,
+  { gasPrice: GasPrice.fromString('0.025uosmo') },
+)
+
+// 2. Create typed contract — no adapter needed
+const token = createTypedContract(client, contractAddress, cw20)
+
+// 3. Type-safe interactions
+const [account] = await wallet.getAccounts()
+await token.execute(
+  account.address,
+  'transfer',
+  { recipient: 'osmo1...', amount: '1000' },
+  'auto',
+)
+
+const { balance } = await token.query('balance', { address: account.address })
+console.log(balance) // string
+```

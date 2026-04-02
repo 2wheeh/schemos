@@ -1,0 +1,100 @@
+# Wallet Kits (React)
+
+schemos works with any React wallet library. Here are patterns for the most popular ones.
+
+## interchain-kit
+
+[interchain-kit](https://github.com/cosmology-tech/interchain-kit) provides `useChain` with an interchainjs signing client — requires the `schemos/telescope` adapter.
+
+```typescript twoslash
+// @moduleResolution: bundler
+// @module: esnext
+import { useMemo } from 'react'
+import { useChain } from '@interchain-kit/react'
+import { MsgExecuteContract } from '@xpla/xplajs/cosmwasm/wasm/v1/tx'
+import { createGetSmartContractState } from '@xpla/xplajs/cosmwasm/wasm/v1/query.rpc.func'
+import { createExecuteAdapter } from 'schemos/telescope'
+import { createTypedContract } from 'schemos'
+import { cw20 } from 'schemos/schemas'
+
+function useCw20(contractAddress: string, rpcEndpoint: string) {
+  const { signingClient } = useChain('xpla')
+
+  return useMemo(() => {
+    if (!signingClient) return null
+
+    const smartContractState = createGetSmartContractState(rpcEndpoint)
+
+    const adapter = createExecuteAdapter(
+      smartContractState,
+      (sender, msgs, fee, memo) =>
+        signingClient.signAndBroadcast(sender, msgs, fee, memo),
+      (p) =>
+        MsgExecuteContract.encode(
+          MsgExecuteContract.fromPartial({ ...p, funds: [...p.funds] }),
+        ).finish(),
+    )
+
+    return createTypedContract(adapter, contractAddress, cw20)
+  }, [signingClient, contractAddress, rpcEndpoint])
+}
+```
+
+## cosmos-kit
+
+[cosmos-kit](https://github.com/cosmology-tech/cosmos-kit) returns cosmjs clients — **no adapter needed**.
+
+```typescript twoslash
+// @moduleResolution: bundler
+// @module: esnext
+import { useMemo } from 'react'
+import { useChain } from '@cosmos-kit/react'
+import { createTypedContract } from 'schemos'
+import { cw20 } from 'schemos/schemas'
+
+function useCw20(contractAddress: string) {
+  const { getSigningCosmWasmClient } = useChain('osmosis')
+
+  return useMemo(async () => {
+    const client = await getSigningCosmWasmClient()
+    return createTypedContract(client, contractAddress, cw20)
+  }, [getSigningCosmWasmClient, contractAddress])
+}
+```
+
+## graz
+
+[graz](https://github.com/graz-sh/graz) provides lightweight cosmjs hooks — **no adapter needed**.
+
+graz returns a multi-chain map (`Record<string, SigningCosmWasmClient | null>`), so extract by chain ID and null-check:
+
+```typescript twoslash
+// @moduleResolution: bundler
+// @module: esnext
+import { useMemo } from 'react'
+import { useCosmWasmSigningClient } from 'graz'
+import { createTypedContract } from 'schemos'
+import { cw20 } from 'schemos/schemas'
+
+const CHAIN_ID = 'osmosis-1'
+
+function useCw20(contractAddress: string) {
+  const { data: clients } = useCosmWasmSigningClient({ chainId: [CHAIN_ID] })
+
+  return useMemo(() => {
+    const client = clients?.[CHAIN_ID]
+    if (!client) return undefined
+    return createTypedContract(client, contractAddress, cw20)
+  }, [clients, contractAddress])
+}
+```
+
+## Comparison
+
+| | interchain-kit | cosmos-kit | graz |
+|---|---|---|---|
+| Signing client | interchainjs | cosmjs | cosmjs |
+| Adapter needed | `schemos/telescope` | None | None |
+| Wallet support | Keplr, Cosmostation, WalletConnect | Keplr, Leap, Cosmostation, +20 | Keplr, Leap, Cosmostation, +more |
+| React hooks | `useChain()` | `useChain()` | `useCosmWasmSigningClient()` |
+| Bundle size | Larger | Medium | Lightweight |

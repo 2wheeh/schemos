@@ -1,3 +1,7 @@
+import type {
+  CosmWasmClient,
+  SigningCosmWasmClient,
+} from '@cosmjs/cosmwasm-stargate'
 import { assertType, expectTypeOf, test } from 'vitest'
 import type { CosmWasmExecuteClient, CosmWasmQueryClient } from './client.js'
 import type { Coin, StdFee } from './types.js'
@@ -73,4 +77,15 @@ test('CosmWasmQueryClient is assignable from execute client', () => {
   }
   const queryClient: CosmWasmQueryClient = execClient
   assertType<CosmWasmQueryClient>(queryClient)
+})
+
+// ---------------------------------------------------------------------------
+// cosmjs compatibility: verify structural assignability
+// ---------------------------------------------------------------------------
+test('cosmjs SigningCosmWasmClient is assignable to CosmWasmExecuteClient', () => {
+  expectTypeOf<SigningCosmWasmClient>().toMatchTypeOf<CosmWasmExecuteClient>()
+})
+
+test('cosmjs CosmWasmClient is assignable to CosmWasmQueryClient', () => {
+  expectTypeOf<CosmWasmClient>().toMatchTypeOf<CosmWasmQueryClient>()
 })

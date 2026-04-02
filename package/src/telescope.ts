@@ -42,7 +42,13 @@
  */
 
 import type { CosmWasmExecuteClient, CosmWasmQueryClient } from './client.js'
-import type { Coin, StdFee } from './types.js'
+import type { Coin } from './types.js'
+
+// StdFee from interchainjs is not readonly!!
+interface InterchainStdFee {
+  amount: Coin[]
+  gas: string
+}
 
 /**
  * RPC query function for CosmWasm smart contract state.
@@ -64,7 +70,7 @@ export type SmartContractStateFn = (params: {
 export type SignAndBroadcastFn<TResult = unknown> = (
   sender: string,
   messages: readonly { typeUrl: string; value: Uint8Array }[],
-  fee: StdFee | 'auto',
+  fee: InterchainStdFee | 'auto',
   memo?: string,
 ) => Promise<TResult>
 
@@ -163,7 +169,7 @@ export function createExecuteAdapter<TExecuteResult>(
       sender: string,
       address: string,
       msg: Record<string, unknown>,
-      fee: StdFee | 'auto',
+      fee: InterchainStdFee | 'auto',
       memo?: string,
       funds?: readonly Coin[],
     ) {

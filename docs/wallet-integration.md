@@ -173,7 +173,9 @@ function useTokenInfo(contractAddress: string) {
 
 [graz](https://github.com/graz-sh/graz) provides lightweight React hooks for Cosmos with cosmjs signing clients.
 
-Like cosmos-kit, cosmjs clients work directly with schemos — **no adapter needed**:
+Like cosmos-kit, cosmjs clients work directly with schemos — **no adapter needed**.
+
+graz returns a multi-chain map (`Record<string, SigningCosmWasmClient | null>`), so extract by chain ID and null-check:
 
 ```typescript
 import { useMemo } from 'react'
@@ -181,13 +183,16 @@ import { useAccount, useCosmWasmSigningClient } from 'graz'
 import { createTypedContract } from 'schemos'
 import { cw20 } from 'schemos/schemas'
 
+const CHAIN_ID = 'osmosis-1'
+
 function useCw20(contractAddress: string) {
-  const { data: client } = useCosmWasmSigningClient()
+  const { data: clients } = useCosmWasmSigningClient({ chainId: [CHAIN_ID] })
 
   return useMemo(() => {
-    if (!client) return null
+    const client = clients?.[CHAIN_ID]
+    if (!client) return undefined
     return createTypedContract(client, contractAddress, cw20)
-  }, [client, contractAddress])
+  }, [clients, contractAddress])
 }
 
 // Usage in component
@@ -242,7 +247,7 @@ function useTokenBalance(contractAddress: string, address: string) {
 | Adapter needed | Yes (`schemos/telescope`) | No (direct) | No (direct) |
 | MsgExecuteContract source | Chain telescope package | Built into cosmjs | Built into cosmjs |
 | Wallet support | Keplr, Cosmostation, WalletConnect | Keplr, Leap, Cosmostation, +20 more | Keplr, Leap, Cosmostation, WalletConnect, +more |
-| React hooks | `useWalletManager()` | `useChain()` | `useCosmWasmSigningClient()` |
+| React hooks | `useChain()` | `useChain()` | `useCosmWasmSigningClient()` |
 | Bundle size | Larger (interchainjs) | Medium | Lightweight |
 
 All approaches give you the same schemos DX — type-safe execute/query with autocomplete and runtime validation. The difference is only in how the signing client is obtained and whether an adapter is needed.
