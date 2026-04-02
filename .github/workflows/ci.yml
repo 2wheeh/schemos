@@ -1,0 +1,66 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  ci:
+    name: Typecheck, Lint, Test, Build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: pnpm/action-setup@v5
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: Typecheck
+        run: pnpm typecheck
+
+      - name: Lint & Format
+        run: pnpm check
+
+      - name: Unit & Type tests
+        run: pnpm test
+
+      - name: Type benchmarks
+        run: pnpm test:types
+
+      - name: Build
+        run: pnpm build
+
+  e2e:
+    name: E2E Tests
+    runs-on: ubuntu-latest
+    needs: ci
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: pnpm/action-setup@v5
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          cache: pnpm
+
+      - name: Install wasmd
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release download "binaries/latest" --repo 2wheeh/cosmock --pattern "wasmd-linux-amd64.gz" --dir /tmp
+          gunzip -c /tmp/wasmd-linux-amd64.gz > /usr/local/bin/wasmd
+          chmod +x /usr/local/bin/wasmd
+          wasmd version
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: E2E tests (cosmjs + telescope)
+        run: pnpm test:e2e
