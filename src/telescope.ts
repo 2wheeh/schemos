@@ -26,7 +26,7 @@
  * ```ts
  * // With xplajs
  * import { MsgExecuteContract } from '@xpla/xplajs/cosmwasm/wasm/v1/tx'
- * import { createExecuteAdapter } from 'cosmore/interchain'
+ * import { createExecuteAdapter } from 'cosmore/telescope'
  *
  * const adapter = createExecuteAdapter(
  *   rpc.cosmwasm.wasm.v1.smartContractState,
@@ -104,7 +104,7 @@ const decoder = new TextDecoder()
  *
  * @example
  * ```ts
- * import { createQueryAdapter } from 'cosmore/interchain'
+ * import { createQueryAdapter } from 'cosmore/telescope'
  * import { createTypedContract } from 'cosmore'
  * import { cw20 } from 'cosmore/schemas'
  *
@@ -135,7 +135,7 @@ export function createQueryAdapter(
  *
  * @example
  * ```ts
- * import { createExecuteAdapter } from 'cosmore/interchain'
+ * import { createExecuteAdapter } from 'cosmore/telescope'
  * import { createTypedContract } from 'cosmore'
  * import { cw20 } from 'cosmore/schemas'
  * import { MsgExecuteContract } from '@xpla/xplajs/cosmwasm/wasm/v1/tx'

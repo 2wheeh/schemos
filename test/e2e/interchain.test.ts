@@ -18,11 +18,11 @@ import { MsgExecuteContract as XplaMsgExecuteContract } from '@xpla/xplajs/cosmw
 import { MsgExecuteContract as OsmoMsgExecuteContract } from 'osmojs/cosmwasm/wasm/v1/tx.js'
 import { describe, expect, inject, it } from 'vitest'
 import { createTypedContract } from '../../src/contract.js'
+import { cw20 } from '../../src/schemas/index.js'
 import {
   createExecuteAdapter,
   createQueryAdapter,
-} from '../../src/interchain.js'
-import { cw20 } from '../../src/schemas/index.js'
+} from '../../src/telescope.js'
 
 const rpcUrl = inject('rpcUrl')
 const mnemonic = inject('mnemonic')

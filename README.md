@@ -16,7 +16,7 @@ pnpm add cosmore
 import { createTypedContract } from 'cosmore'
 import { cw20 } from 'cosmore/schemas'
 
-// Works with any CosmWasm client (cosmjs, interchainjs, graz, etc.)
+// Works with any CosmWasm client (cosmjs, telescope SDKs, etc.)
 const token = createTypedContract(client, 'osmo1...', cw20)
 
 // Execute — message names autocomplete, fields are type-checked
@@ -75,12 +75,12 @@ const { balance } = await token.query('balance', { address: '...' })
 // balance: string — inferred from response schema
 ```
 
-## Usage with telescope SDKs (interchainjs / xplajs / osmojs)
+## Usage with telescope SDKs (xplajs / osmojs / neutronjs)
 
-Telescope-generated SDKs use protobuf RPCs instead of cosmjs's JSON API. cosmore provides a generic adapter via `cosmore/interchain`:
+Telescope-generated SDKs use protobuf RPCs instead of cosmjs's JSON API. cosmore provides a generic adapter via `cosmore/telescope`:
 
 ```typescript
-import { createExecuteAdapter } from 'cosmore/interchain'
+import { createExecuteAdapter } from 'cosmore/telescope'
 import { createTypedContract } from 'cosmore'
 import { cw20 } from 'cosmore/schemas'
 
@@ -102,50 +102,9 @@ const token = createTypedContract(adapter, contractAddress, cw20)
 await token.execute(sender, 'transfer', { recipient: '...', amount: '1000' }, 'auto')
 ```
 
-> **Why callbacks?** CosmWasm is an opt-in module — `MsgExecuteContract` lives in each chain's telescope package (`@xpla/xplajs`, `osmojs`, `neutronjs`), not in a shared package. The adapter accepts callbacks so cosmore doesn't depend on any specific chain SDK.
+> **Why callbacks?** CosmWasm is an opt-in module — `MsgExecuteContract` lives in each chain's telescope package (`@xpla/xplajs`, `osmojs`, `neutronjs`), not in `@interchainjs/cosmos-types`. The adapter accepts callbacks so cosmore doesn't depend on any specific chain SDK.
 
-## Usage with interchain-kit (React)
-
-```typescript
-import { useWalletManager } from '@interchain-kit/react'
-import { toEncoders } from '@interchainjs/cosmos/utils'
-import { MsgExecuteContract } from '@xpla/xplajs/cosmwasm/wasm/v1/tx'
-import { createGetSmartContractState } from '@xpla/xplajs/cosmwasm/wasm/v1/query.rpc.func'
-import { createExecuteAdapter } from 'cosmore/interchain'
-import { createTypedContract } from 'cosmore'
-import { cw20 } from 'cosmore/schemas'
-
-function useCw20(contractAddress: string) {
-  const wm = useWalletManager()
-  const { currentWalletName } = wm
-  const chainName = 'xpla'
-
-  return useMemo(() => {
-    const signingClient = wm.getSigningClient(currentWalletName, chainName)
-    if (!signingClient) return null
-
-    signingClient.addEncoders(toEncoders(MsgExecuteContract))
-
-    const smartContractState = createGetSmartContractState(rpcEndpoint)
-
-    const adapter = createExecuteAdapter(
-      smartContractState,
-      (sender, msgs, fee, memo) =>
-        signingClient.signAndBroadcast(sender, msgs, fee, memo),
-      (p) =>
-        MsgExecuteContract.encode(
-          MsgExecuteContract.fromPartial({ ...p, funds: [...p.funds] }),
-        ).finish(),
-    )
-
-    return createTypedContract(adapter, contractAddress, cw20)
-  }, [wm, currentWalletName, contractAddress])
-}
-
-// In component:
-const token = useCw20('xpla1...')
-await token?.execute(sender, 'transfer', { recipient: '...', amount: '1000' }, 'auto')
-```
+For React integration with interchain-kit or cosmos-kit, see [docs/wallet-integration.md](./docs/wallet-integration.md).
 
 ## Custom Contracts
 
@@ -226,7 +185,7 @@ Creates a typed contract instance.
 
 Returns `TypedContract` (with execute) or `TypedQueryContract` (query-only).
 
-### `cosmore/interchain`
+### `cosmore/telescope`
 
 - **`createQueryAdapter(smartContractState)`** — Wraps a telescope RPC query function into `CosmWasmQueryClient`
 - **`createExecuteAdapter(smartContractState, signAndBroadcast, encodeMsgExecuteContract)`** — Full adapter for telescope SDKs

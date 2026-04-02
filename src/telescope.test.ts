@@ -1,5 +1,5 @@
 import { describe, expect, test, vi } from 'vitest'
-import { createExecuteAdapter, createQueryAdapter } from './interchain.js'
+import { createExecuteAdapter, createQueryAdapter } from './telescope.js'
 
 describe('createQueryAdapter', () => {
   test('converts JSON query to Uint8Array and parses response', async () => {
