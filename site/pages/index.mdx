@@ -1,39 +1,3 @@
 # schemos
 
 Type-safe CosmWasm contract interactions, zero codegen.
-
-schemos infers TypeScript types from JSON Schema (`cargo schema` output) at compile time and validates messages at runtime — no generated code, no client lock-in.
-
-## Install
-
-```bash
-pnpm add schemos
-```
-
-## Quick Start
-
-```typescript
-import { createTypedContract } from 'schemos'
-import { cw20 } from 'schemos/schemas'
-
-const token = createTypedContract(client, 'osmo1...', cw20)
-
-// Execute — message names autocomplete, fields are type-checked
-await token.execute(
-  senderAddress,
-  'transfer',
-  { recipient: 'osmo1...', amount: '1000' },
-  fee,
-)
-
-// Query — return type inferred from response schema
-const { balance } = await token.query('balance', { address: 'osmo1...' })
-```
-
-## Entrypoints
-
-| Import | Description |
-|--------|-------------|
-| `schemos` | `createTypedContract`, types, interfaces |
-| `schemos/schemas` | Bundled cw20, cw721 schemas |
-| `schemos/telescope` | Adapter for telescope-generated SDKs |
