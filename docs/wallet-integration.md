@@ -8,8 +8,7 @@ schemos is client-agnostic — it wraps any signing client through a minimal int
 
 ```typescript
 import { useMemo } from 'react'
-import { useWalletManager } from '@interchain-kit/react'
-import { toEncoders } from '@interchainjs/cosmos/utils'
+import { useChain } from '@interchain-kit/react'
 import { MsgExecuteContract } from '@xpla/xplajs/cosmwasm/wasm/v1/tx'
 import { createGetSmartContractState } from '@xpla/xplajs/cosmwasm/wasm/v1/query.rpc.func'
 import { createExecuteAdapter } from 'schemos/telescope'
@@ -24,21 +23,13 @@ import { cw20 } from 'schemos/schemas'
  * because CosmWasm types are not in @interchainjs/cosmos-types.
  */
 function useCw20(contractAddress: string, rpcEndpoint: string) {
-  const wm = useWalletManager()
-  const { currentWalletName } = wm
-  const chainName = 'xpla' // or 'osmosis', etc.
+  const { signingClient } = useChain('xpla')
 
   return useMemo(() => {
-    const signingClient = wm.getSigningClient(currentWalletName, chainName)
     if (!signingClient) return null
 
-    // Register the MsgExecuteContract encoder
-    signingClient.addEncoders(toEncoders(MsgExecuteContract))
-
-    // Create telescope query function
     const smartContractState = createGetSmartContractState(rpcEndpoint)
 
-    // Build schemos adapter
     const adapter = createExecuteAdapter(
       smartContractState,
       (sender, msgs, fee, memo) =>
@@ -50,13 +41,13 @@ function useCw20(contractAddress: string, rpcEndpoint: string) {
     )
 
     return createTypedContract(adapter, contractAddress, cw20)
-  }, [wm, currentWalletName, contractAddress, rpcEndpoint])
+  }, [signingClient, contractAddress, rpcEndpoint])
 }
 
 // Usage in component
 function TransferButton() {
   const token = useCw20('xpla1contract...', 'https://rpc.xpla.io')
-  const { address } = useWalletManager() // sender address
+  const { address } = useChain('xpla')
 
   const handleTransfer = async () => {
     await token?.execute(
