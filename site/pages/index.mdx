@@ -13,25 +13,32 @@ pnpm add schemos
 ## Quick Start
 
 ```typescript twoslash
+// @noErrors
 // @moduleResolution: bundler
 // @module: esnext
+import { SigningCosmWasmClient } from '@cosmjs/cosmwasm-stargate'
 import { createTypedContract } from 'schemos'
-import type { CosmWasmExecuteClient, StdFee } from 'schemos'
 import { cw20 } from 'schemos/schemas'
 
-declare const client: CosmWasmExecuteClient
+declare const client: SigningCosmWasmClient
 declare const senderAddress: string
-declare const fee: StdFee
 
 const token = createTypedContract(client, 'osmo1...', cw20)
 
 // Execute — message names autocomplete, fields are type-checked
-await token.execute(
+const result = await token.execute(
   senderAddress,
   'transfer',
   { recipient: 'osmo1...', amount: '1000' },
-  fee,
+  'auto',
 )
+
+result.transactionHash
+//     ^|
+
+
+
+
 
 // Query — return type inferred from response schema
 const { balance } = await token.query('balance', { address: 'osmo1...' })

@@ -15,7 +15,15 @@
     "vocs": "^1.4.1"
   },
   "devDependencies": {
+    "@cosmjs/cosmwasm-stargate": "^0.38.1",
+    "@cosmjs/proto-signing": "^0.38.1",
+    "@cosmjs/stargate": "^0.38.1",
+    "@cosmos-kit/react": "^2.24.1",
+    "@interchain-kit/react": "^0.10.1",
     "@types/react": "^19.1.0",
+    "@xpla/xplajs": "1.7.0",
+    "graz": "^0.4.2",
+    "osmojs": "16.15.0",
     "typescript": "catalog:"
   }
 }

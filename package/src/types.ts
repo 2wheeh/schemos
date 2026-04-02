@@ -4,6 +4,6 @@ export interface Coin {
 }
 
 export interface StdFee {
-  readonly amount: readonly Coin[]
-  readonly gas: string
+  amount: readonly Coin[]
+  gas: string
 }

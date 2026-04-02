@@ -1,0 +1,98 @@
+# Telescope SDKs
+
+Telescope-generated SDKs (xplajs, osmojs, neutronjs) use protobuf RPCs instead of cosmjs's JSON API. schemos provides a generic adapter via `schemos/telescope`.
+
+## Why an adapter?
+
+CosmWasm is an opt-in Cosmos SDK module. `MsgExecuteContract` and query RPCs live in each chain's telescope package — not in a shared package:
+
+```
+@interchainjs/cosmos-types  → Cosmos SDK core only (no cosmwasm)
+
+Per-chain telescope packages (include cosmwasm if chain supports it):
+@xpla/xplajs               → cosmwasm/wasm/v1/tx
+osmojs                      → cosmwasm/wasm/v1/tx
+neutronjs                   → cosmwasm/wasm/v1/tx
+```
+
+The adapter accepts callbacks so schemos doesn't depend on any specific chain SDK.
+
+## Query Adapter
+
+```typescript twoslash
+// @moduleResolution: bundler
+// @module: esnext
+import { createQueryAdapter } from 'schemos/telescope'
+import { createTypedContract } from 'schemos'
+import { cw20 } from 'schemos/schemas'
+import type { SmartContractStateFn } from 'schemos/telescope'
+
+// From any telescope SDK's RPC client
+declare const smartContractState: SmartContractStateFn
+
+const adapter = createQueryAdapter(smartContractState)
+const token = createTypedContract(adapter, 'osmo1...', {
+  query: cw20.query,
+  responses: cw20.responses,
+})
+
+const { balance } = await token.query('balance', { address: 'osmo1...' })
+//      ^?
+```
+
+## Execute Adapter
+
+```typescript twoslash
+// @moduleResolution: bundler
+// @module: esnext
+import { createExecuteAdapter, SmartContractStateFn } from 'schemos/telescope'
+import type { SignAndBroadcastFn } from 'schemos/telescope'
+import { createTypedContract } from 'schemos'
+import { cw20 } from 'schemos/schemas'
+import { MsgExecuteContract } from 'osmojs/cosmwasm/wasm/v1/tx'
+
+declare const smartContractState: SmartContractStateFn
+declare const signAndBroadcast: SignAndBroadcastFn
+declare const contractAddress: string
+declare const sender: string
+
+const adapter = createExecuteAdapter(
+  smartContractState,
+  signAndBroadcast,
+  (p) =>
+    MsgExecuteContract.encode(
+      MsgExecuteContract.fromPartial({ ...p, funds: [...p.funds] }),
+    ).finish(),
+)
+
+const token = createTypedContract(adapter, contractAddress, cw20)
+
+await token.execute(
+  sender,
+  'transfer',
+  { recipient: '...', amount: '1000' },
+  'auto',
+)
+```
+
+:::info
+The `MsgExecuteContract.encode()` pattern is identical across all telescope packages — only the import path changes.
+:::
+
+## xplajs
+
+```typescript
+import { MsgExecuteContract } from '@xpla/xplajs/cosmwasm/wasm/v1/tx'
+```
+
+## osmojs
+
+```typescript
+import { MsgExecuteContract } from 'osmojs/cosmwasm/wasm/v1/tx'
+```
+
+## neutronjs
+
+```typescript
+import { MsgExecuteContract } from 'neutronjs/cosmwasm/wasm/v1/tx'
+```
