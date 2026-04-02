@@ -1,0 +1,62 @@
+{
+  "name": "schemos",
+  "version": "0.1.0",
+  "type": "module",
+  "description": "Type-safe CosmWasm contract interactions, zero codegen",
+  "license": "MIT",
+  "author": "wnhlee <2wheeh@gmail.com>",
+  "keywords": [
+    "cosmwasm",
+    "cosmos",
+    "type-safe",
+    "json-schema",
+    "typescript",
+    "wasm",
+    "smart-contracts"
+  ],
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    },
+    "./schemas": {
+      "import": "./dist/schemas/index.js",
+      "types": "./dist/schemas/index.d.ts"
+    },
+    "./telescope": {
+      "import": "./dist/telescope.js",
+      "types": "./dist/telescope.d.ts"
+    }
+  },
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:types": "TYPES=true vitest run",
+    "build": "tsc -p tsconfig.build.json",
+    "test:e2e": "E2E=true vitest run"
+  },
+  "dependencies": {
+    "ajv": "^8.18.0"
+  },
+  "devDependencies": {
+    "@ark/attest": "^0.56.0",
+    "@cosmjs/cosmwasm-stargate": "^0.38.1",
+    "@cosmjs/proto-signing": "^0.38.1",
+    "@cosmjs/stargate": "^0.38.1",
+    "@interchainjs/cosmos": "^1.21.0",
+    "@interchainjs/cosmos-types": "^1.21.0",
+    "@types/node": "^24.0.0",
+    "@xpla/xplajs": "1.7.0",
+    "cosmock": "^0.2.0",
+    "interchainjs": "^1.21.0",
+    "json-schema-to-ts": "^3.1.1",
+    "osmojs": "16.15.0",
+    "typescript": "~5.8.0",
+    "vitest": "^4.1.2"
+  },
+  "packageManager": "pnpm@10.30.3"
+}

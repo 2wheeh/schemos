@@ -1,0 +1,14 @@
+{
+  "include": ["**/*.ts", "**/*.tsx"],
+  "exclude": ["dist"],
+  "compilerOptions": {
+    "strict": true,
+    "moduleResolution": "Bundler",
+    "module": "ESNext",
+    "target": "ES2021",
+    "lib": ["ES2022", "DOM"],
+    "jsx": "react-jsx",
+    "skipLibCheck": true,
+    "noEmit": true
+  }
+}
