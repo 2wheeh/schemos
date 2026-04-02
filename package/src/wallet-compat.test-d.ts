@@ -11,10 +11,17 @@
  */
 
 import type { SigningCosmWasmClient } from '@cosmjs/cosmwasm-stargate'
-import type { SigningClient as InterchainSigningClient } from '@interchain-kit/react'
+import type {
+  SigningClient as InterchainSigningClient,
+  useChain,
+} from '@interchain-kit/react'
 import { expectTypeOf, test } from 'vitest'
 import type { CosmWasmExecuteClient, CosmWasmQueryClient } from './client.js'
-import type { createExecuteAdapter, createQueryAdapter } from './telescope.js'
+import type {
+  createExecuteAdapter,
+  createQueryAdapter,
+  SignAndBroadcastFn,
+} from './telescope.js'
 
 // ---------------------------------------------------------------------------
 // graz: useCosmWasmSigningClient() → { data: Record<string, T | null> }
@@ -113,5 +120,16 @@ test('interchainjs StdFee is assignable to schemos StdFee', () => {
   // interchainjs Coin[] (mutable) is assignable to schemos readonly Coin[]
   type InterchainStdFee = import('@interchainjs/types').StdFee
   type SchemosStdFee = import('./types.js').StdFee
-  expectTypeOf<InterchainStdFee>().toMatchTypeOf<SchemosStdFee>()
+  expectTypeOf<InterchainStdFee>().toExtend<SchemosStdFee>()
+})
+
+test('interchain-kit: signingClient.signAndBroadcast is assignable to SignAndBroadcastFn', () => {
+  type InterchainSignAndBroadcast = NonNullable<
+    ReturnType<typeof useChain>['signingClient']
+  >['signAndBroadcast']
+
+  // interchainjs StdFee uses mutable Coin[] while cosmjs uses readonly Coin[].
+  // SignAndBroadcastFn accepts InterchainStdFee (mutable) so that
+  // signingClient.signAndBroadcast can be passed directly to createExecuteAdapter.
+  expectTypeOf<InterchainSignAndBroadcast>().toExtend<SignAndBroadcastFn>()
 })
