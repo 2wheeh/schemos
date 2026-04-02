@@ -32,17 +32,17 @@ type GrazClientData = Record<string, SigningCosmWasmClient | null>
 test('graz: SigningCosmWasmClient | null is NOT assignable without null-check', () => {
   type ClientOrNull = SigningCosmWasmClient | null
   // @ts-expect-error — null is not assignable to CosmWasmExecuteClient
-  expectTypeOf<ClientOrNull>().toMatchTypeOf<CosmWasmExecuteClient>()
+  expectTypeOf<ClientOrNull>().toExtend<CosmWasmExecuteClient>()
 })
 
 test('graz: after null-check, SigningCosmWasmClient is assignable', () => {
   type Client = NonNullable<GrazClientData[string]>
-  expectTypeOf<Client>().toMatchTypeOf<CosmWasmExecuteClient>()
+  expectTypeOf<Client>().toExtend<CosmWasmExecuteClient>()
 })
 
 test('graz: raw Record is NOT assignable (it is a map, not a client)', () => {
   // @ts-expect-error — Record<string, T | null> is not a client
-  expectTypeOf<GrazClientData>().toMatchTypeOf<CosmWasmExecuteClient>()
+  expectTypeOf<GrazClientData>().toExtend<CosmWasmExecuteClient>()
 })
 
 // ---------------------------------------------------------------------------
@@ -53,7 +53,7 @@ test('graz: raw Record is NOT assignable (it is a map, not a client)', () => {
 test('interchain-kit: SigningClient | null is NOT assignable without null-check', () => {
   type ClientOrNull = InterchainSigningClient | null
   // @ts-expect-error — null is not assignable to CosmWasmExecuteClient
-  expectTypeOf<ClientOrNull>().toMatchTypeOf<CosmWasmExecuteClient>()
+  expectTypeOf<ClientOrNull>().toExtend<CosmWasmExecuteClient>()
 })
 
 test('interchain-kit: non-null SigningClient is NOT assignable to CosmWasmExecuteClient', () => {
@@ -61,13 +61,13 @@ test('interchain-kit: non-null SigningClient is NOT assignable to CosmWasmExecut
   // in the shape that schemos expects. Users must use schemos/telescope adapter.
   type Client = NonNullable<InterchainSigningClient>
   // @ts-expect-error — interchainjs signer has different interface than cosmjs
-  expectTypeOf<Client>().toMatchTypeOf<CosmWasmExecuteClient>()
+  expectTypeOf<Client>().toExtend<CosmWasmExecuteClient>()
 })
 
 test('interchain-kit: non-null SigningClient is NOT assignable to CosmWasmQueryClient', () => {
   type Client = NonNullable<InterchainSigningClient>
   // @ts-expect-error — no queryContractSmart in cosmjs shape
-  expectTypeOf<Client>().toMatchTypeOf<CosmWasmQueryClient>()
+  expectTypeOf<Client>().toExtend<CosmWasmQueryClient>()
 })
 
 // ---------------------------------------------------------------------------
@@ -76,12 +76,12 @@ test('interchain-kit: non-null SigningClient is NOT assignable to CosmWasmQueryC
 
 test('telescope: createQueryAdapter returns CosmWasmQueryClient', () => {
   type AdapterReturn = ReturnType<typeof createQueryAdapter>
-  expectTypeOf<AdapterReturn>().toMatchTypeOf<CosmWasmQueryClient>()
+  expectTypeOf<AdapterReturn>().toExtend<CosmWasmQueryClient>()
 })
 
 test('telescope: createExecuteAdapter returns CosmWasmExecuteClient', () => {
   type AdapterReturn = ReturnType<typeof createExecuteAdapter>
-  expectTypeOf<AdapterReturn>().toMatchTypeOf<CosmWasmExecuteClient>()
+  expectTypeOf<AdapterReturn>().toExtend<CosmWasmExecuteClient>()
 })
 
 // ---------------------------------------------------------------------------
@@ -94,7 +94,7 @@ test('interchain-kit: adapter + createTypedContract compiles', () => {
   // 2. Wrap with createExecuteAdapter
   // 3. Pass to createTypedContract
   type AdapterReturn = ReturnType<typeof createExecuteAdapter>
-  expectTypeOf<AdapterReturn>().toMatchTypeOf<CosmWasmExecuteClient>()
+  expectTypeOf<AdapterReturn>().toExtend<CosmWasmExecuteClient>()
   // This proves createTypedContract(adapter, addr, schema) will compile
 })
 
@@ -105,15 +105,13 @@ test('interchain-kit: adapter + createTypedContract compiles', () => {
 test('schemos StdFee.amount accepts readonly Coin[]', () => {
   type SchemosStdFee = import('./types.js').StdFee
   type AmountType = SchemosStdFee['amount']
-  expectTypeOf<AmountType>().toMatchTypeOf<
-    readonly import('./types.js').Coin[]
-  >()
+  expectTypeOf<AmountType>().toExtend<readonly import('./types.js').Coin[]>()
 })
 
 test('cosmjs StdFee is assignable to schemos StdFee', () => {
   type CosmjsStdFee = import('@cosmjs/amino').StdFee
   type SchemosStdFee = import('./types.js').StdFee
-  expectTypeOf<CosmjsStdFee>().toMatchTypeOf<SchemosStdFee>()
+  expectTypeOf<CosmjsStdFee>().toExtend<SchemosStdFee>()
 })
 
 test('interchainjs StdFee is assignable to schemos StdFee', () => {

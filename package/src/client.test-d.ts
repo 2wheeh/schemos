@@ -83,9 +83,9 @@ test('CosmWasmQueryClient is assignable from execute client', () => {
 // cosmjs compatibility: verify structural assignability
 // ---------------------------------------------------------------------------
 test('cosmjs SigningCosmWasmClient is assignable to CosmWasmExecuteClient', () => {
-  expectTypeOf<SigningCosmWasmClient>().toMatchTypeOf<CosmWasmExecuteClient>()
+  expectTypeOf<SigningCosmWasmClient>().toExtend<CosmWasmExecuteClient>()
 })
 
 test('cosmjs CosmWasmClient is assignable to CosmWasmQueryClient', () => {
-  expectTypeOf<CosmWasmClient>().toMatchTypeOf<CosmWasmQueryClient>()
+  expectTypeOf<CosmWasmClient>().toExtend<CosmWasmQueryClient>()
 })
