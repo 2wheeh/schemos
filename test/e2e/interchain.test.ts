@@ -1,18 +1,19 @@
 /**
  * E2E tests for cosmore/interchain adapter with real telescope packages.
  *
- * Uses cosmock local wasmd + cosmjs for wasm upload/instantiate,
- * then cosmore interchain adapter with xplajs and osmojs MsgExecuteContract
- * encoders for type-safe contract interactions.
+ * Uses cosmock local wasmd for the chain. Contract deploy via cosmjs
+ * (cosmock's native client), then cosmore interchain adapter with
+ * REAL telescope RPC clients and MsgExecuteContract encoders.
  *
- * This proves the adapter works with any telescope-generated package
- * that includes cosmwasm/wasm/v1/tx.
+ * Query: xplajs createGetSmartContractState (real telescope RPC)
+ * Execute: cosmjs signAndBroadcast (cosmock compatible) + telescope encode
  */
 import fs from 'node:fs'
 import path from 'node:path'
 import { SigningCosmWasmClient } from '@cosmjs/cosmwasm-stargate'
 import { DirectSecp256k1HdWallet } from '@cosmjs/proto-signing'
 import { GasPrice } from '@cosmjs/stargate'
+import { createGetSmartContractState as createXplaQuery } from '@xpla/xplajs/cosmwasm/wasm/v1/query.rpc.func.js'
 import { MsgExecuteContract as XplaMsgExecuteContract } from '@xpla/xplajs/cosmwasm/wasm/v1/tx.js'
 import { MsgExecuteContract as OsmoMsgExecuteContract } from 'osmojs/cosmwasm/wasm/v1/tx.js'
 import { describe, expect, inject, it } from 'vitest'
@@ -67,20 +68,7 @@ async function deployCw20() {
   return { client, address, contractAddress }
 }
 
-/**
- * Helper: create a smartContractState mock using cosmjs under the hood.
- * In real usage, this would come from a telescope RPC client.
- */
-function createSmartContractStateFn(client: SigningCosmWasmClient) {
-  return async (params: { address: string; queryData: Uint8Array }) => {
-    const query = JSON.parse(new TextDecoder().decode(params.queryData))
-    const result = await client.queryContractSmart(params.address, query)
-    const data = new TextEncoder().encode(JSON.stringify(result))
-    return { data }
-  }
-}
-
-describe('cosmore/interchain adapter with xplajs MsgExecuteContract', () => {
+describe('cosmore/interchain with real xplajs telescope RPC', () => {
   let cosmjsClient: SigningCosmWasmClient
   let address: string
   let contractAddress: string
@@ -93,24 +81,44 @@ describe('cosmore/interchain adapter with xplajs MsgExecuteContract', () => {
     expect(contractAddress).toBeTruthy()
   })
 
-  it('query adapter works with createTypedContract', async () => {
-    const queryAdapter = createQueryAdapter(
-      createSmartContractStateFn(cosmjsClient),
-    )
+  it('query via real xplajs createGetSmartContractState', async () => {
+    // Real telescope RPC client — NOT a cosmjs wrapper
+    const smartContractState = createXplaQuery(rpcUrl)
+
+    const queryAdapter = createQueryAdapter(smartContractState)
     const token = createTypedContract(queryAdapter, contractAddress, {
       query: cw20.query,
+      responses: cw20.responses,
     })
 
     const result = await token.query('balance', { address })
     expect(result).toEqual({ balance: '1000000' })
   })
 
-  it('execute adapter with xplajs encoder', async () => {
+  it('query token_info via real xplajs RPC', async () => {
+    const smartContractState = createXplaQuery(rpcUrl)
+    const queryAdapter = createQueryAdapter(smartContractState)
+    const token = createTypedContract(queryAdapter, contractAddress, {
+      query: cw20.query,
+      responses: cw20.responses,
+    })
+
+    const result = await token.query('token_info', {})
+    expect(result).toMatchObject({
+      name: 'Interchain Test Token',
+      symbol: 'ICT',
+      decimals: 6,
+    })
+  })
+
+  it('execute via xplajs encode + cosmjs broadcast', async () => {
+    const smartContractState = createXplaQuery(rpcUrl)
+
     const adapter = createExecuteAdapter(
-      createSmartContractStateFn(cosmjsClient),
+      smartContractState,
       async (sender, messages, _fee, memo) => {
-        // Decode the protobuf back and use cosmjs to broadcast
-        // (since cosmock only speaks cosmjs, we decode then re-execute)
+        // Use cosmjs for broadcast (cosmock compatible)
+        // In real usage, this would be the telescope signing client
         for (const msg of messages) {
           const decoded = XplaMsgExecuteContract.decode(msg.value)
           await cosmjsClient.execute(
@@ -142,13 +150,13 @@ describe('cosmore/interchain adapter with xplajs MsgExecuteContract', () => {
       'auto',
     )
 
-    // Verify via query
+    // Verify via real xplajs query
     const result = await token.query('balance', { address })
     expect(result).toEqual({ balance: '1000000' })
   })
 })
 
-describe('cosmore/interchain adapter with osmojs MsgExecuteContract', () => {
+describe('cosmore/interchain with osmojs MsgExecuteContract', () => {
   let cosmjsClient: SigningCosmWasmClient
   let address: string
   let contractAddress: string
@@ -161,9 +169,11 @@ describe('cosmore/interchain adapter with osmojs MsgExecuteContract', () => {
     expect(contractAddress).toBeTruthy()
   })
 
-  it('execute adapter with osmojs encoder', async () => {
+  it('execute via osmojs encode + cosmjs broadcast', async () => {
+    const smartContractState = createXplaQuery(rpcUrl)
+
     const adapter = createExecuteAdapter(
-      createSmartContractStateFn(cosmjsClient),
+      smartContractState,
       async (sender, messages, _fee, memo) => {
         for (const msg of messages) {
           const decoded = OsmoMsgExecuteContract.decode(msg.value)
@@ -189,7 +199,6 @@ describe('cosmore/interchain adapter with osmojs MsgExecuteContract', () => {
 
     const token = createTypedContract(adapter, contractAddress, cw20)
 
-    // Execute mint
     await token.execute(
       address,
       'mint',
@@ -197,12 +206,12 @@ describe('cosmore/interchain adapter with osmojs MsgExecuteContract', () => {
       'auto',
     )
 
-    // Verify balance increased
+    // Verify via real xplajs query
     const result = await token.query('balance', { address })
     expect(result).toEqual({ balance: '1005000' })
   })
 
-  it('xplajs and osmojs encode to identical bytes', () => {
+  it('xplajs and osmojs encode to identical protobuf bytes', () => {
     const params = {
       sender: 'wasm1abc',
       contract: 'wasm1def',
