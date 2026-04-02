@@ -66,8 +66,13 @@ Query-only (no signing):
 import { CosmWasmClient } from '@cosmjs/cosmwasm-stargate'
 
 const client = await CosmWasmClient.connect(rpcEndpoint)
-const token = createTypedContract(client, contractAddress, { query: cw20.query })
-// token.query() available, token.execute() does not exist
+const token = createTypedContract(client, contractAddress, {
+  query: cw20.query,
+  responses: cw20.responses,
+})
+// token.query() available with typed responses, token.execute() does not exist
+const { balance } = await token.query('balance', { address: '...' })
+// balance: string — inferred from response schema
 ```
 
 ## Usage with telescope SDKs (interchainjs / xplajs / osmojs)
