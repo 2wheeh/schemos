@@ -18,7 +18,7 @@
  * ```
  *
  * Since each chain imports `MsgExecuteContract` from a different package,
- * cosmore cannot depend on any specific one. Instead, the adapter accepts
+ * schemos cannot depend on any specific one. Instead, the adapter accepts
  * callback functions that the user provides from their chain's SDK.
  *
  * ## Usage
@@ -26,7 +26,7 @@
  * ```ts
  * // With xplajs
  * import { MsgExecuteContract } from '@xpla/xplajs/cosmwasm/wasm/v1/tx'
- * import { createExecuteAdapter } from 'cosmore/telescope'
+ * import { createExecuteAdapter } from 'schemos/telescope'
  *
  * const adapter = createExecuteAdapter(
  *   rpc.cosmwasm.wasm.v1.smartContractState,
@@ -104,9 +104,9 @@ const decoder = new TextDecoder()
  *
  * @example
  * ```ts
- * import { createQueryAdapter } from 'cosmore/telescope'
- * import { createTypedContract } from 'cosmore'
- * import { cw20 } from 'cosmore/schemas'
+ * import { createQueryAdapter } from 'schemos/telescope'
+ * import { createTypedContract } from 'schemos'
+ * import { cw20 } from 'schemos/schemas'
  *
  * const adapter = createQueryAdapter(rpc.cosmwasm.wasm.v1.smartContractState)
  * const token = createTypedContract(adapter, 'osmo1...', { query: cw20.query })
@@ -135,9 +135,9 @@ export function createQueryAdapter(
  *
  * @example
  * ```ts
- * import { createExecuteAdapter } from 'cosmore/telescope'
- * import { createTypedContract } from 'cosmore'
- * import { cw20 } from 'cosmore/schemas'
+ * import { createExecuteAdapter } from 'schemos/telescope'
+ * import { createTypedContract } from 'schemos'
+ * import { cw20 } from 'schemos/schemas'
  * import { MsgExecuteContract } from '@xpla/xplajs/cosmwasm/wasm/v1/tx'
  *
  * const adapter = createExecuteAdapter(

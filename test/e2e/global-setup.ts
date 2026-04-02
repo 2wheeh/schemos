@@ -6,7 +6,7 @@ const TEST_MNEMONIC =
 
 export default async function setup({ provide }: TestProject) {
   const wasmd = Instance.wasmd({
-    chainId: 'cosmore-test-1',
+    chainId: 'schemos-test-1',
     prefix: 'wasm',
     accounts: [
       {
@@ -17,9 +17,9 @@ export default async function setup({ provide }: TestProject) {
     ],
   })
 
-  console.log('[cosmore-e2e] starting wasmd...')
+  console.log('[schemos-e2e] starting wasmd...')
   await wasmd.start()
-  console.log('[cosmore-e2e] wasmd started')
+  console.log('[schemos-e2e] wasmd started')
 
   provide('rpcUrl', `http://${wasmd.host}:${wasmd.port}`)
   provide('mnemonic', TEST_MNEMONIC)

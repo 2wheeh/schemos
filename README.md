@@ -1,20 +1,20 @@
-# cosmore
+# schemos
 
 Type-safe CosmWasm contract interactions, zero codegen.
 
-cosmore infers TypeScript types from JSON Schema (`cargo schema` output) at compile time and validates messages at runtime — no generated code, no client lock-in.
+schemos infers TypeScript types from JSON Schema (`cargo schema` output) at compile time and validates messages at runtime — no generated code, no client lock-in.
 
 ## Install
 
 ```bash
-pnpm add cosmore
+pnpm add schemos
 ```
 
 ## Quick Start
 
 ```typescript
-import { createTypedContract } from 'cosmore'
-import { cw20 } from 'cosmore/schemas'
+import { createTypedContract } from 'schemos'
+import { cw20 } from 'schemos/schemas'
 
 // Works with any CosmWasm client (cosmjs, telescope SDKs, etc.)
 const token = createTypedContract(client, 'osmo1...', cw20)
@@ -37,7 +37,7 @@ Typo? Compile error. Missing field? Compile error. Wrong type at runtime? Error 
 ## How It Works
 
 ```
-cargo schema → JSON Schema (as const) → cosmore
+cargo schema → JSON Schema (as const) → schemos
                                           ├─ compile time: json-schema-to-ts infers TypeScript types
                                           └─ runtime: Ajv validates before tx broadcast
 ```
@@ -50,8 +50,8 @@ Single source of truth. The same JSON Schema drives both type inference and runt
 
 ```typescript
 import { SigningCosmWasmClient } from '@cosmjs/cosmwasm-stargate'
-import { createTypedContract } from 'cosmore'
-import { cw20 } from 'cosmore/schemas'
+import { createTypedContract } from 'schemos'
+import { cw20 } from 'schemos/schemas'
 
 const client = await SigningCosmWasmClient.connectWithSigner(rpcEndpoint, signer)
 const token = createTypedContract(client, contractAddress, cw20)
@@ -77,12 +77,12 @@ const { balance } = await token.query('balance', { address: '...' })
 
 ## Usage with telescope SDKs (xplajs / osmojs / neutronjs)
 
-Telescope-generated SDKs use protobuf RPCs instead of cosmjs's JSON API. cosmore provides a generic adapter via `cosmore/telescope`:
+Telescope-generated SDKs use protobuf RPCs instead of cosmjs's JSON API. schemos provides a generic adapter via `schemos/telescope`:
 
 ```typescript
-import { createExecuteAdapter } from 'cosmore/telescope'
-import { createTypedContract } from 'cosmore'
-import { cw20 } from 'cosmore/schemas'
+import { createExecuteAdapter } from 'schemos/telescope'
+import { createTypedContract } from 'schemos'
+import { cw20 } from 'schemos/schemas'
 
 // Each chain's telescope package provides MsgExecuteContract
 import { MsgExecuteContract } from '@xpla/xplajs/cosmwasm/wasm/v1/tx'
@@ -102,7 +102,7 @@ const token = createTypedContract(adapter, contractAddress, cw20)
 await token.execute(sender, 'transfer', { recipient: '...', amount: '1000' }, 'auto')
 ```
 
-> **Why callbacks?** CosmWasm is an opt-in module — `MsgExecuteContract` lives in each chain's telescope package (`@xpla/xplajs`, `osmojs`, `neutronjs`), not in `@interchainjs/cosmos-types`. The adapter accepts callbacks so cosmore doesn't depend on any specific chain SDK.
+> **Why callbacks?** CosmWasm is an opt-in module — `MsgExecuteContract` lives in each chain's telescope package (`@xpla/xplajs`, `osmojs`, `neutronjs`), not in `@interchainjs/cosmos-types`. The adapter accepts callbacks so schemos doesn't depend on any specific chain SDK.
 
 For React integration with interchain-kit or cosmos-kit, see [docs/wallet-integration.md](./docs/wallet-integration.md).
 
@@ -111,7 +111,7 @@ For React integration with interchain-kit or cosmos-kit, see [docs/wallet-integr
 Run `cargo schema` on your contract, import the JSON as `as const`:
 
 ```typescript
-import { createTypedContract } from 'cosmore'
+import { createTypedContract } from 'schemos'
 
 // Your contract's schema output
 const myExecuteSchema = { /* cargo schema JSON */ } as const
@@ -147,7 +147,7 @@ const state = await contract.query('get_state', {})
 ## Bundled Schemas
 
 ```typescript
-import { cw20, cw721 } from 'cosmore/schemas'
+import { cw20, cw721 } from 'schemos/schemas'
 
 // cw20: transfer, burn, send, mint, allowances, etc.
 const token = createTypedContract(client, addr, cw20)
@@ -159,12 +159,12 @@ const nft = createTypedContract(client, addr, cw721)
 Individual schema imports also available:
 
 ```typescript
-import { cw20ExecuteSchema, cw20QuerySchema, cw20ResponseSchemas } from 'cosmore/schemas'
+import { cw20ExecuteSchema, cw20QuerySchema, cw20ResponseSchemas } from 'schemos/schemas'
 ```
 
 ## Comparison
 
-|                    | @cosmwasm/ts-codegen | Manual typing   | **cosmore**              |
+|                    | @cosmwasm/ts-codegen | Manual typing   | **schemos**              |
 |--------------------|----------------------|-----------------|--------------------------|
 | Approach           | Full codegen         | Hand-written    | JSON Schema → inference  |
 | Generated code     | Hundreds of lines    | 0               | 0                        |
@@ -185,12 +185,12 @@ Creates a typed contract instance.
 
 Returns `TypedContract` (with execute) or `TypedQueryContract` (query-only).
 
-### `cosmore/telescope`
+### `schemos/telescope`
 
 - **`createQueryAdapter(smartContractState)`** — Wraps a telescope RPC query function into `CosmWasmQueryClient`
 - **`createExecuteAdapter(smartContractState, signAndBroadcast, encodeMsgExecuteContract)`** — Full adapter for telescope SDKs
 
-### `cosmore/schemas`
+### `schemos/schemas`
 
 - **`cw20`** — `{ execute, query, responses }` for CW20 fungible tokens
 - **`cw721`** — `{ execute, query, responses }` for CW721 NFTs

@@ -12,7 +12,7 @@ const mnemonic = inject('mnemonic')
 
 const RECIPIENT_MNEMONIC = 'zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo wrong'
 
-describe('cosmore e2e: cw20 on local wasmd', () => {
+describe('schemos e2e: cw20 on local wasmd', () => {
   let client: SigningCosmWasmClient
   let address: string
   let recipientAddress: string
@@ -65,13 +65,13 @@ describe('cosmore e2e: cw20 on local wasmd', () => {
     expect(contractAddress).toBeTruthy()
   })
 
-  it('queries balance via cosmore typed contract', async () => {
+  it('queries balance via schemos typed contract', async () => {
     const token = createTypedContract(client, contractAddress, cw20)
     const result = await token.query('balance', { address })
     expect(result).toEqual({ balance: '1000000' })
   })
 
-  it('queries token_info via cosmore typed contract', async () => {
+  it('queries token_info via schemos typed contract', async () => {
     const token = createTypedContract(client, contractAddress, cw20)
     const result = await token.query('token_info', {})
     expect(result).toMatchObject({
@@ -81,7 +81,7 @@ describe('cosmore e2e: cw20 on local wasmd', () => {
     })
   })
 
-  it('executes transfer via cosmore typed contract', async () => {
+  it('executes transfer via schemos typed contract', async () => {
     const token = createTypedContract(client, contractAddress, cw20)
 
     await token.execute(
@@ -100,7 +100,7 @@ describe('cosmore e2e: cw20 on local wasmd', () => {
     expect(recipientBalance).toEqual({ balance: '500' })
   })
 
-  it('executes mint via cosmore typed contract', async () => {
+  it('executes mint via schemos typed contract', async () => {
     const token = createTypedContract(client, contractAddress, cw20)
 
     const before = (await token.query('balance', { address })) as {

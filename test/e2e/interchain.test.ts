@@ -1,8 +1,8 @@
 /**
- * E2E tests for cosmore/interchain adapter with real telescope packages.
+ * E2E tests for schemos/interchain adapter with real telescope packages.
  *
  * Uses cosmock local wasmd for the chain. Contract deploy via cosmjs
- * (cosmock's native client), then cosmore interchain adapter with
+ * (cosmock's native client), then schemos interchain adapter with
  * REAL telescope RPC clients and MsgExecuteContract encoders.
  *
  * Query: xplajs createGetSmartContractState (real telescope RPC)
@@ -68,7 +68,7 @@ async function deployCw20() {
   return { client, address, contractAddress }
 }
 
-describe('cosmore/interchain with real xplajs telescope RPC', () => {
+describe('schemos/interchain with real xplajs telescope RPC', () => {
   let cosmjsClient: SigningCosmWasmClient
   let address: string
   let contractAddress: string
@@ -156,7 +156,7 @@ describe('cosmore/interchain with real xplajs telescope RPC', () => {
   })
 })
 
-describe('cosmore/interchain with osmojs MsgExecuteContract', () => {
+describe('schemos/interchain with osmojs MsgExecuteContract', () => {
   let cosmjsClient: SigningCosmWasmClient
   let address: string
   let contractAddress: string

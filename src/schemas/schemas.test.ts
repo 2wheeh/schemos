@@ -200,7 +200,7 @@ describe('createTypedContract with bundled cw721 schemas', () => {
 })
 
 // ---------------------------------------------------------------------------
-// Namespace spread pattern: import { cw20 } from 'cosmore/schemas'
+// Namespace spread pattern: import { cw20 } from 'schemos/schemas'
 // ---------------------------------------------------------------------------
 describe('createTypedContract with namespace spread', () => {
   test('cw20 namespace works with spread', async () => {

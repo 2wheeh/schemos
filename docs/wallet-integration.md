@@ -1,6 +1,6 @@
 # Wallet Integration
 
-cosmore is client-agnostic — it wraps any signing client through a minimal interface. This document shows how to integrate with popular Cosmos wallet libraries.
+schemos is client-agnostic — it wraps any signing client through a minimal interface. This document shows how to integrate with popular Cosmos wallet libraries.
 
 ## interchain-kit
 
@@ -12,14 +12,14 @@ import { useWalletManager } from '@interchain-kit/react'
 import { toEncoders } from '@interchainjs/cosmos/utils'
 import { MsgExecuteContract } from '@xpla/xplajs/cosmwasm/wasm/v1/tx'
 import { createGetSmartContractState } from '@xpla/xplajs/cosmwasm/wasm/v1/query.rpc.func'
-import { createExecuteAdapter } from 'cosmore/telescope'
-import { createTypedContract } from 'cosmore'
-import { cw20 } from 'cosmore/schemas'
+import { createExecuteAdapter } from 'schemos/telescope'
+import { createTypedContract } from 'schemos'
+import { cw20 } from 'schemos/schemas'
 
 /**
  * Hook: create a typed CW20 contract from interchain-kit wallet.
  *
- * The telescope adapter bridges interchainjs signing clients to cosmore.
+ * The telescope adapter bridges interchainjs signing clients to schemos.
  * MsgExecuteContract comes from the chain's telescope package (xplajs, osmojs, etc.)
  * because CosmWasm types are not in @interchainjs/cosmos-types.
  */
@@ -38,7 +38,7 @@ function useCw20(contractAddress: string, rpcEndpoint: string) {
     // Create telescope query function
     const smartContractState = createGetSmartContractState(rpcEndpoint)
 
-    // Build cosmore adapter
+    // Build schemos adapter
     const adapter = createExecuteAdapter(
       smartContractState,
       (sender, msgs, fee, memo) =>
@@ -75,9 +75,9 @@ function TransferButton() {
 
 ```typescript
 import { createGetSmartContractState } from '@xpla/xplajs/cosmwasm/wasm/v1/query.rpc.func'
-import { createQueryAdapter } from 'cosmore/telescope'
-import { createTypedContract } from 'cosmore'
-import { cw20 } from 'cosmore/schemas'
+import { createQueryAdapter } from 'schemos/telescope'
+import { createTypedContract } from 'schemos'
+import { cw20 } from 'schemos/schemas'
 
 function useTokenBalance(contractAddress: string, rpcEndpoint: string) {
   const smartContractState = createGetSmartContractState(rpcEndpoint)
@@ -99,18 +99,18 @@ function useTokenBalance(contractAddress: string, rpcEndpoint: string) {
 
 [cosmos-kit](https://github.com/cosmology-tech/cosmos-kit) provides React hooks with cosmjs signing clients.
 
-Since cosmjs's `SigningCosmWasmClient` is directly compatible with cosmore, **no adapter is needed**:
+Since cosmjs's `SigningCosmWasmClient` is directly compatible with schemos, **no adapter is needed**:
 
 ```typescript
 import { useMemo } from 'react'
 import { useChain } from '@cosmos-kit/react'
-import { createTypedContract } from 'cosmore'
-import { cw20 } from 'cosmore/schemas'
+import { createTypedContract } from 'schemos'
+import { cw20 } from 'schemos/schemas'
 
 /**
  * Hook: create a typed CW20 contract from cosmos-kit wallet.
  *
- * cosmos-kit returns a cosmjs SigningCosmWasmClient which cosmore
+ * cosmos-kit returns a cosmjs SigningCosmWasmClient which schemos
  * accepts directly — no telescope adapter needed.
  */
 function useCw20(contractAddress: string) {
@@ -120,7 +120,7 @@ function useCw20(contractAddress: string) {
     const client = await getSigningCosmWasmClient()
     if (!client) return null
 
-    // cosmjs client works directly with cosmore — no adapter
+    // cosmjs client works directly with schemos — no adapter
     return createTypedContract(client, contractAddress, cw20)
   }, [getSigningCosmWasmClient, contractAddress])
 }
@@ -148,8 +148,8 @@ function MintButton() {
 
 ```typescript
 import { useChain } from '@cosmos-kit/react'
-import { createTypedContract } from 'cosmore'
-import { cw20 } from 'cosmore/schemas'
+import { createTypedContract } from 'schemos'
+import { cw20 } from 'schemos/schemas'
 
 function useTokenInfo(contractAddress: string) {
   const { getCosmWasmClient } = useChain('osmosis')
@@ -173,13 +173,13 @@ function useTokenInfo(contractAddress: string) {
 
 [graz](https://github.com/graz-sh/graz) provides lightweight React hooks for Cosmos with cosmjs signing clients.
 
-Like cosmos-kit, cosmjs clients work directly with cosmore — **no adapter needed**:
+Like cosmos-kit, cosmjs clients work directly with schemos — **no adapter needed**:
 
 ```typescript
 import { useMemo } from 'react'
 import { useAccount, useCosmWasmSigningClient } from 'graz'
-import { createTypedContract } from 'cosmore'
-import { cw20 } from 'cosmore/schemas'
+import { createTypedContract } from 'schemos'
+import { cw20 } from 'schemos/schemas'
 
 function useCw20(contractAddress: string) {
   const { data: client } = useCosmWasmSigningClient()
@@ -212,8 +212,8 @@ function TransferForm() {
 
 ```typescript
 import { useCosmWasmClient } from 'graz'
-import { createTypedContract } from 'cosmore'
-import { cw20 } from 'cosmore/schemas'
+import { createTypedContract } from 'schemos'
+import { cw20 } from 'schemos/schemas'
 
 function useTokenBalance(contractAddress: string, address: string) {
   const { data: client } = useCosmWasmClient()
@@ -239,10 +239,10 @@ function useTokenBalance(contractAddress: string, address: string) {
 | | interchain-kit | cosmos-kit | graz |
 |---|---|---|---|
 | Signing client | interchainjs | cosmjs | cosmjs |
-| Adapter needed | Yes (`cosmore/telescope`) | No (direct) | No (direct) |
+| Adapter needed | Yes (`schemos/telescope`) | No (direct) | No (direct) |
 | MsgExecuteContract source | Chain telescope package | Built into cosmjs | Built into cosmjs |
 | Wallet support | Keplr, Cosmostation, WalletConnect | Keplr, Leap, Cosmostation, +20 more | Keplr, Leap, Cosmostation, WalletConnect, +more |
 | React hooks | `useWalletManager()` | `useChain()` | `useCosmWasmSigningClient()` |
 | Bundle size | Larger (interchainjs) | Medium | Lightweight |
 
-All approaches give you the same cosmore DX — type-safe execute/query with autocomplete and runtime validation. The difference is only in how the signing client is obtained and whether an adapter is needed.
+All approaches give you the same schemos DX — type-safe execute/query with autocomplete and runtime validation. The difference is only in how the signing client is obtained and whether an adapter is needed.

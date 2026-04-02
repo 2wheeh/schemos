@@ -1,6 +1,6 @@
 {
-  "name": "cosmore",
-  "version": "0.0.1",
+  "name": "schemos",
+  "version": "0.1.0",
   "type": "module",
   "description": "Type-safe CosmWasm contract interactions, zero codegen",
   "license": "MIT",
