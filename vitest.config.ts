@@ -14,8 +14,6 @@ export default defineConfig({
             ...(process.env.TYPES ? ['src/**/*.bench-d.ts'] : []),
             'src/**/*.test-d.ts',
             'src/**/*.test.ts',
-            'test/spike/**/*.test-d.ts',
-            'test/spike/**/*.test.ts',
           ],
         },
       },
