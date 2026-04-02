@@ -13,7 +13,7 @@ pnpm add schemos
 ## Quick Start
 
 ```typescript twoslash
-// @noErrors
+// @errors: 2561 2322
 // @moduleResolution: bundler
 // @module: esnext
 import { SigningCosmWasmClient } from '@cosmjs/cosmwasm-stargate'
@@ -43,6 +43,13 @@ result.transactionHash
 // Query — return type inferred from response schema
 const { balance } = await token.query('balance', { address: 'osmo1...' })
 //      ^?
+
+
+
+// Compile-time validations
+await token.query('balance', { addres: 'osmo1...' })
+await token.query('balance', { address: 123 })
+
 ```
 
 ## Entrypoints
