@@ -1,7 +1,7 @@
 import { SigningCosmWasmClient } from '@cosmjs/cosmwasm-stargate'
 import { DirectSecp256k1HdWallet } from '@cosmjs/proto-signing'
 import { GasPrice } from '@cosmjs/stargate'
-import { createTypedContract } from 'schemos'
+import { createTypedContract, validateMsg } from 'schemos'
 import { cw20 } from 'schemos/schemas'
 import { describe, expect, inject, it } from 'vitest'
 
@@ -15,7 +15,7 @@ describe('schemos e2e: cw20 on local wasmd', () => {
   let client: SigningCosmWasmClient
   let contractAddress: string
 
-  it('instantiates cw20 contract', async () => {
+  it('instantiates cw20 contract with validated msg', async () => {
     const wallet = await DirectSecp256k1HdWallet.fromMnemonic(mnemonic, {
       prefix: 'wasm',
     })
@@ -23,21 +23,34 @@ describe('schemos e2e: cw20 on local wasmd', () => {
       gasPrice: GasPrice.fromString('0stake'),
     })
 
+    // validateMsg validates flat struct schemas (instantiate is a struct, not an enum)
+    const initMsg = validateMsg(cw20.instantiate, {
+      name: 'Test Token',
+      symbol: 'TEST',
+      decimals: 6,
+      initial_balances: [{ address, amount: '1000000' }],
+      mint: { minter: address },
+    })
+
     const result = await client.instantiate(
       address,
       cw20CodeId,
-      {
-        name: 'Test Token',
-        symbol: 'TEST',
-        decimals: 6,
-        initial_balances: [{ address, amount: '1000000' }],
-        mint: { minter: address },
-      },
+      initMsg,
       'cw20-test',
       'auto',
     )
     contractAddress = result.contractAddress
     expect(contractAddress).toBeTruthy()
+  })
+
+  it('rejects invalid instantiate msg at runtime', () => {
+    expect(() =>
+      validateMsg(cw20.instantiate, {
+        name: 'Test Token',
+        symbol: 'TEST',
+        // missing required: decimals, initial_balances
+      }),
+    ).toThrow('Validation failed')
   })
 
   it('queries balance via schemos typed contract', async () => {

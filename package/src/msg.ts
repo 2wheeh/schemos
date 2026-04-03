@@ -93,6 +93,35 @@ export function createMsgBuilder<const TSchema extends JSONSchema>(
 }
 
 /**
+ * Validate data against a JSON Schema. Returns the data as-is if valid,
+ * throws a descriptive error if invalid.
+ *
+ * Reuses the same WeakMap-based validator cache as `buildMsg` — safe for
+ * repeated calls with the same schema reference.
+ *
+ * @example
+ * ```ts
+ * import { validateMsg } from 'schemos'
+ *
+ * const initMsg = validateMsg(cw20InstantiateSchema, {
+ *   name: 'Token', symbol: 'TKN', decimals: 6, initial_balances: []
+ * })
+ * ```
+ */
+export function validateMsg<T>(
+  schema: JSONSchema,
+  data: unknown,
+  options?: { context?: string },
+): T {
+  const { validate, ajv } = getValidator(schema)
+  if (!validate(data)) {
+    const prefix = options?.context ?? 'Validation failed'
+    throw new Error(`${prefix}: ${ajv.errorsText(validate.errors)}`)
+  }
+  return data as T
+}
+
+/**
  * Build a validated message envelope. Used internally by createMsgBuilder
  * and createTypedContract. Accepts loose types — prefer createMsgBuilder
  * for type-safe usage.
@@ -104,16 +133,8 @@ export function buildMsg(
   options?: { context?: string },
 ): Record<string, unknown> {
   const envelope = { [msg]: args }
-
-  const { validate, ajv } = getValidator(schema)
-  if (!validate(envelope)) {
-    const prefix = options?.context
-      ? `${options.context} validation`
-      : 'Validation'
-    throw new Error(
-      `${prefix} failed for "${msg}": ${ajv.errorsText(validate.errors)}`,
-    )
-  }
-
-  return envelope
+  const context = options?.context
+    ? `${options.context} validation failed for "${msg}"`
+    : `Validation failed for "${msg}"`
+  return validateMsg(schema, envelope, { context })
 }

@@ -1,8 +1,13 @@
 import type { FromSchema } from 'json-schema-to-ts'
 import { assertType, test } from 'vitest'
+import { createMsgBuilder } from '../msg.js'
 import type { cw20ExecuteSchema } from './cw20/execute.js'
+import { cw20 } from './cw20/index.js'
+import type { cw20InstantiateSchema } from './cw20/instantiate.js'
 import type { cw20QuerySchema } from './cw20/query.js'
 import type { cw721ExecuteSchema } from './cw721/execute.js'
+import { cw721 } from './cw721/index.js'
+import type { cw721InstantiateSchema } from './cw721/instantiate.js'
 import type { cw721QuerySchema } from './cw721/query.js'
 
 // ---------------------------------------------------------------------------
@@ -133,4 +138,73 @@ test('cw721 num_tokens is empty', () => {
 
 test('cw721 contract_info is empty', () => {
   assertType<Cw721Query>({ contract_info: {} })
+})
+
+// ---------------------------------------------------------------------------
+// CW20 Instantiate
+// ---------------------------------------------------------------------------
+type Cw20Instantiate = FromSchema<typeof cw20InstantiateSchema>
+
+test('cw20 instantiate has required name, symbol, decimals, initial_balances', () => {
+  assertType<Cw20Instantiate>({
+    name: 'My Token',
+    symbol: 'MTK',
+    decimals: 6,
+    initial_balances: [{ address: 'osmo1abc', amount: '1000000' }],
+  })
+})
+
+test('cw20 instantiate accepts optional mint config', () => {
+  assertType<Cw20Instantiate>({
+    name: 'My Token',
+    symbol: 'MTK',
+    decimals: 6,
+    initial_balances: [],
+    mint: { minter: 'osmo1abc', cap: '1000000000' },
+  })
+})
+
+test('cw20 instantiate accepts optional marketing config', () => {
+  assertType<Cw20Instantiate>({
+    name: 'My Token',
+    symbol: 'MTK',
+    decimals: 6,
+    initial_balances: [],
+    marketing: {
+      project: 'https://example.com',
+      description: 'A token',
+      marketing: 'osmo1abc',
+    },
+  })
+})
+
+test('createMsgBuilder works with cw20.instantiate schema', () => {
+  const builder = createMsgBuilder(cw20.instantiate)
+  assertType<typeof builder>(builder)
+})
+
+// ---------------------------------------------------------------------------
+// CW721 Instantiate
+// ---------------------------------------------------------------------------
+type Cw721Instantiate = FromSchema<typeof cw721InstantiateSchema>
+
+test('cw721 instantiate has required name and symbol', () => {
+  assertType<Cw721Instantiate>({
+    name: 'My NFT Collection',
+    symbol: 'MNFT',
+  })
+})
+
+test('cw721 instantiate accepts optional minter and creator', () => {
+  assertType<Cw721Instantiate>({
+    name: 'My NFT Collection',
+    symbol: 'MNFT',
+    minter: 'osmo1abc',
+    creator: 'osmo1def',
+  })
+})
+
+test('createMsgBuilder works with cw721.instantiate schema', () => {
+  const builder = createMsgBuilder(cw721.instantiate)
+  assertType<typeof builder>(builder)
 })
