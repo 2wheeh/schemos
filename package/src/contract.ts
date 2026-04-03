@@ -1,7 +1,29 @@
+import { Ajv, type ValidateFunction } from 'ajv'
 import type { FromSchema, JSONSchema } from 'json-schema-to-ts'
 import type { CosmWasmExecuteClient, CosmWasmQueryClient } from './client.js'
 import { buildMsg, type MessageArgs, type MessageNames } from './msg.js'
 import type { Coin, StdFee } from './types.js'
+
+/** Module-level cache for response schema validators. */
+const responseValidatorCache = new WeakMap<
+  object,
+  { validate: ValidateFunction; ajv: Ajv }
+>()
+
+function getResponseValidator(schema: JSONSchema): {
+  validate: ValidateFunction
+  ajv: Ajv
+} {
+  const key = schema as object
+  let cached = responseValidatorCache.get(key)
+  if (!cached) {
+    const ajv = new Ajv({ validateFormats: false })
+    const validate = ajv.compile(schema as Record<string, unknown>)
+    cached = { validate, ajv }
+    responseValidatorCache.set(key, cached)
+  }
+  return cached
+}
 
 // ---------------------------------------------------------------------------
 // Contract return types
@@ -56,6 +78,7 @@ export function createTypedContract<
     execute: TExecuteSchema
     query: TQuerySchema
     responses?: TResponses
+    validateResponses?: boolean
   },
 ): TypedContract<
   FromSchema<TExecuteSchema>,
@@ -75,6 +98,7 @@ export function createTypedContract<
     execute?: never
     query: TQuerySchema
     responses?: TResponses
+    validateResponses?: boolean
   },
 ): TypedQueryContract<FromSchema<TQuerySchema>, TResponses>
 
@@ -86,6 +110,7 @@ export function createTypedContract(
     execute?: JSONSchema
     query: JSONSchema
     responses?: Record<string, JSONSchema>
+    validateResponses?: boolean
   },
 ): any {
   const contract: Record<string, unknown> = {
@@ -93,7 +118,21 @@ export function createTypedContract(
       const envelope = buildMsg(schemas.query, msg, args, {
         context: 'Query',
       })
-      return client.queryContractSmart(contractAddress, envelope)
+      const result = await client.queryContractSmart(contractAddress, envelope)
+
+      if (schemas.validateResponses && schemas.responses) {
+        const responseSchema = schemas.responses[msg]
+        if (responseSchema !== undefined) {
+          const { validate, ajv } = getResponseValidator(responseSchema)
+          if (!validate(result)) {
+            throw new Error(
+              `Response validation failed for query '${msg}': ${ajv.errorsText(validate.errors)}`,
+            )
+          }
+        }
+      }
+
+      return result
     },
   }
 
