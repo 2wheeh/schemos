@@ -1,6 +1,11 @@
 import type { FromSchema, JSONSchema } from 'json-schema-to-ts'
 import type { CosmWasmExecuteClient, CosmWasmQueryClient } from './client.js'
-import { buildMsg, type MessageArgs, type MessageNames } from './msg.js'
+import {
+  buildMsg,
+  type MessageArgs,
+  type MessageNames,
+  validateMsg,
+} from './msg.js'
 import type { Coin, StdFee } from './types.js'
 
 // ---------------------------------------------------------------------------
@@ -56,6 +61,7 @@ export function createTypedContract<
     execute: TExecuteSchema
     query: TQuerySchema
     responses?: TResponses
+    validateResponses?: boolean
   },
 ): TypedContract<
   FromSchema<TExecuteSchema>,
@@ -75,6 +81,7 @@ export function createTypedContract<
     execute?: never
     query: TQuerySchema
     responses?: TResponses
+    validateResponses?: boolean
   },
 ): TypedQueryContract<FromSchema<TQuerySchema>, TResponses>
 
@@ -86,6 +93,7 @@ export function createTypedContract(
     execute?: JSONSchema
     query: JSONSchema
     responses?: Record<string, JSONSchema>
+    validateResponses?: boolean
   },
 ): any {
   const contract: Record<string, unknown> = {
@@ -93,7 +101,18 @@ export function createTypedContract(
       const envelope = buildMsg(schemas.query, msg, args, {
         context: 'Query',
       })
-      return client.queryContractSmart(contractAddress, envelope)
+      const result = await client.queryContractSmart(contractAddress, envelope)
+
+      if (schemas.validateResponses && schemas.responses) {
+        const responseSchema = schemas.responses[msg]
+        if (responseSchema !== undefined) {
+          validateMsg(responseSchema, result, {
+            context: `Response validation failed for query '${msg}'`,
+          })
+        }
+      }
+
+      return result
     },
   }
 

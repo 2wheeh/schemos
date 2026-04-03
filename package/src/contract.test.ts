@@ -1,7 +1,11 @@
 import { describe, expect, test, vi } from 'vitest'
 import type { CosmWasmExecuteClient, CosmWasmQueryClient } from './client.js'
 import { createTypedContract } from './contract.js'
-import { cw20ExecuteSchema, cw20QuerySchema } from './schemas/cw20/index.js'
+import {
+  cw20ExecuteSchema,
+  cw20QuerySchema,
+  cw20ResponseSchemas,
+} from './schemas/cw20/index.js'
 
 function createMockExecuteClient(): CosmWasmExecuteClient {
   return {
@@ -156,5 +160,63 @@ describe('createTypedContract (query-only)', () => {
 
   test('query-only contract does not have execute method', () => {
     expect('execute' in cw20).toBe(false)
+  })
+})
+
+describe('createTypedContract (response validation)', () => {
+  test('validateResponses disabled (default): malformed response passes through', async () => {
+    const mockClient: CosmWasmQueryClient = {
+      queryContractSmart: vi.fn().mockResolvedValue({ balance: 12345 }),
+    }
+    const cw20 = createTypedContract(mockClient, 'osmo1contract', {
+      query: cw20QuerySchema,
+      responses: cw20ResponseSchemas,
+    })
+
+    const result = await cw20.query('balance', { address: 'osmo1abc' })
+    expect(result).toEqual({ balance: 12345 })
+  })
+
+  test('validateResponses enabled: valid response passes through', async () => {
+    const mockClient: CosmWasmQueryClient = {
+      queryContractSmart: vi.fn().mockResolvedValue({ balance: '1000' }),
+    }
+    const cw20 = createTypedContract(mockClient, 'osmo1contract', {
+      query: cw20QuerySchema,
+      responses: cw20ResponseSchemas,
+      validateResponses: true,
+    })
+
+    const result = await cw20.query('balance', { address: 'osmo1abc' })
+    expect(result).toEqual({ balance: '1000' })
+  })
+
+  test('validateResponses enabled: malformed response throws', async () => {
+    const mockClient: CosmWasmQueryClient = {
+      queryContractSmart: vi.fn().mockResolvedValue({ balance: 12345 }),
+    }
+    const cw20 = createTypedContract(mockClient, 'osmo1contract', {
+      query: cw20QuerySchema,
+      responses: cw20ResponseSchemas,
+      validateResponses: true,
+    })
+
+    await expect(
+      cw20.query('balance', { address: 'osmo1abc' }),
+    ).rejects.toThrow("Response validation failed for query 'balance':")
+  })
+
+  test('validateResponses enabled but no response schema for query: passes through', async () => {
+    const mockClient: CosmWasmQueryClient = {
+      queryContractSmart: vi.fn().mockResolvedValue({ whatever: true }),
+    }
+    const cw20 = createTypedContract(mockClient, 'osmo1contract', {
+      query: cw20QuerySchema,
+      responses: { balance: cw20ResponseSchemas.balance },
+      validateResponses: true,
+    })
+
+    const result = await cw20.query('token_info', {})
+    expect(result).toEqual({ whatever: true })
   })
 })
