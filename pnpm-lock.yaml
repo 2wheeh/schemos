@@ -72,6 +72,9 @@ importers:
       '@xpla/xplajs':
         specifier: 1.7.0
         version: 1.7.0(@chain-registry/v2-types@0.53.146)(@chain-registry/v2@1.71.237)(bufferutil@4.1.0)(utf-8-validate@6.0.6)
+      cosmjs-types:
+        specifier: ^0.11.0
+        version: 0.11.0
       cosmock:
         specifier: ^0.2.0
         version: 0.2.0

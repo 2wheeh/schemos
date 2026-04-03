@@ -59,6 +59,7 @@
     "@interchainjs/types": "^1.21.0",
     "@types/node": "^24.0.0",
     "@xpla/xplajs": "1.7.0",
+    "cosmjs-types": "^0.11.0",
     "cosmock": "^0.2.0",
     "graz": "^0.4.2",
     "interchainjs": "^1.21.0",
