@@ -1,5 +1,8 @@
 import { describe, expect, test, vi } from 'vitest'
+import { createTypedContract } from '../contract.js'
 import { Json } from '../encoding/index.js'
+import { cw20 } from '../schemas/cw20/index.js'
+import { cw20QuerySchema } from '../schemas/cw20/query.js'
 import { createExecuteAdapter, createQueryAdapter } from './telescope.js'
 
 describe('createQueryAdapter', () => {
@@ -21,9 +24,6 @@ describe('createQueryAdapter', () => {
   })
 
   test('works with createTypedContract', async () => {
-    const { createTypedContract } = await import('../contract.js')
-    const { cw20QuerySchema } = await import('../schemas/cw20/query.js')
-
     const mockSmartContractState = vi.fn().mockResolvedValue({
       data: Json.toBytes({ balance: '500' }),
     })
@@ -125,9 +125,6 @@ describe('createExecuteAdapter', () => {
   })
 
   test('works with createTypedContract and cw20 schema', async () => {
-    const { createTypedContract } = await import('../contract.js')
-    const { cw20 } = await import('../schemas/cw20/index.js')
-
     const queryFn = vi.fn().mockResolvedValue({
       data: Json.toBytes({ balance: '1000' }),
     })
