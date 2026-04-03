@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'vitest'
-import { Json } from './encoding.js'
+import { Json } from './json.js'
 
 describe('Json.toBytes', () => {
   test('encodes object to JSON UTF-8 bytes', () => {

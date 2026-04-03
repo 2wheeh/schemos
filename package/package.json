@@ -28,16 +28,8 @@
       "types": "./dist/schemas/index.d.ts"
     },
     "./telescope": {
-      "import": "./dist/telescope.js",
-      "types": "./dist/telescope.d.ts"
-    },
-    "./msg": {
-      "import": "./dist/msg.js",
-      "types": "./dist/msg.d.ts"
-    },
-    "./encoding": {
-      "import": "./dist/encoding.js",
-      "types": "./dist/encoding.d.ts"
+      "import": "./dist/adapters/telescope.js",
+      "types": "./dist/adapters/telescope.d.ts"
     }
   },
   "types": "./dist/index.d.ts",

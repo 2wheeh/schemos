@@ -16,12 +16,12 @@ import type {
   useChain,
 } from '@interchain-kit/react'
 import { expectTypeOf, test } from 'vitest'
-import type { CosmWasmExecuteClient, CosmWasmQueryClient } from './client.js'
 import type {
   createExecuteAdapter,
   createQueryAdapter,
   SignAndBroadcastFn,
-} from './telescope.js'
+} from './adapters/telescope.js'
+import type { CosmWasmExecuteClient, CosmWasmQueryClient } from './client.js'
 
 // ---------------------------------------------------------------------------
 // graz: useCosmWasmSigningClient() → { data: Record<string, T | null> }

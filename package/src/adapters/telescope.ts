@@ -41,9 +41,9 @@
  * @module
  */
 
-import type { CosmWasmExecuteClient, CosmWasmQueryClient } from './client.js'
-import { Json } from './encoding.js'
-import type { Coin } from './types.js'
+import type { CosmWasmExecuteClient, CosmWasmQueryClient } from '../client.js'
+import { Json } from '../encoding/index.js'
+import type { Coin } from '../types.js'
 
 // StdFee from interchainjs is not readonly!!
 interface InterchainStdFee {

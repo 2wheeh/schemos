@@ -17,13 +17,13 @@ import { createGetSmartContractState as createXplaQuery } from '@xpla/xplajs/cos
 import { MsgExecuteContract as XplaMsgExecuteContract } from '@xpla/xplajs/cosmwasm/wasm/v1/tx.js'
 import { MsgExecuteContract as OsmoMsgExecuteContract } from 'osmojs/cosmwasm/wasm/v1/tx.js'
 import { describe, expect, inject, it } from 'vitest'
-import { createTypedContract } from '../../src/contract.js'
-import { Json } from '../../src/encoding.js'
-import { cw20 } from '../../src/schemas/index.js'
 import {
   createExecuteAdapter,
   createQueryAdapter,
-} from '../../src/telescope.js'
+} from '../../src/adapters/telescope.js'
+import { createTypedContract } from '../../src/contract.js'
+import { Json } from '../../src/encoding/index.js'
+import { cw20 } from '../../src/schemas/index.js'
 
 const rpcUrl = inject('rpcUrl')
 const mnemonic = inject('mnemonic')
