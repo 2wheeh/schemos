@@ -1,6 +1,7 @@
 packages:
   - site
   - package
+  - test
 
 onlyBuiltDependencies:
   - esbuild

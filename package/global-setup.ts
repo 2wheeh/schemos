@@ -9,6 +9,6 @@ export default function () {
   return setup({
     benchErrorOnThresholdExceeded: true,
     formatCmd: 'pnpm biome format --write',
-    tsconfig: resolve(__dirname, '../tsconfig.json'),
+    tsconfig: resolve(__dirname, './tsconfig.json'),
   })
 }
