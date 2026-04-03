@@ -1,29 +1,12 @@
-import { Ajv, type ValidateFunction } from 'ajv'
 import type { FromSchema, JSONSchema } from 'json-schema-to-ts'
 import type { CosmWasmExecuteClient, CosmWasmQueryClient } from './client.js'
-import { buildMsg, type MessageArgs, type MessageNames } from './msg.js'
+import {
+  buildMsg,
+  type MessageArgs,
+  type MessageNames,
+  validateMsg,
+} from './msg.js'
 import type { Coin, StdFee } from './types.js'
-
-/** Module-level cache for response schema validators. */
-const responseValidatorCache = new WeakMap<
-  object,
-  { validate: ValidateFunction; ajv: Ajv }
->()
-
-function getResponseValidator(schema: JSONSchema): {
-  validate: ValidateFunction
-  ajv: Ajv
-} {
-  const key = schema as object
-  let cached = responseValidatorCache.get(key)
-  if (!cached) {
-    const ajv = new Ajv({ validateFormats: false })
-    const validate = ajv.compile(schema as Record<string, unknown>)
-    cached = { validate, ajv }
-    responseValidatorCache.set(key, cached)
-  }
-  return cached
-}
 
 // ---------------------------------------------------------------------------
 // Contract return types
@@ -123,12 +106,9 @@ export function createTypedContract(
       if (schemas.validateResponses && schemas.responses) {
         const responseSchema = schemas.responses[msg]
         if (responseSchema !== undefined) {
-          const { validate, ajv } = getResponseValidator(responseSchema)
-          if (!validate(result)) {
-            throw new Error(
-              `Response validation failed for query '${msg}': ${ajv.errorsText(validate.errors)}`,
-            )
-          }
+          validateMsg(responseSchema, result, {
+            context: `Response validation failed for query '${msg}'`,
+          })
         }
       }
 
