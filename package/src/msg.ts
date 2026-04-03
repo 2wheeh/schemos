@@ -1,5 +1,6 @@
 import { Ajv, type ValidateFunction } from 'ajv'
 import type { FromSchema, JSONSchema } from 'json-schema-to-ts'
+import { cosmwasmFormats } from './formats.js'
 
 // ---------------------------------------------------------------------------
 // Level 1: Pure type utilities — zero runtime cost
@@ -39,7 +40,10 @@ function getValidator(schema: JSONSchema): {
   const key = schema as object
   let cached = validatorCache.get(key)
   if (!cached) {
-    const ajv = new Ajv({ validateFormats: false })
+    const ajv = new Ajv()
+    for (const [name, def] of Object.entries(cosmwasmFormats)) {
+      ajv.addFormat(name, def)
+    }
     const validate = ajv.compile(schema as Record<string, unknown>)
     cached = { validate, ajv }
     validatorCache.set(key, cached)
