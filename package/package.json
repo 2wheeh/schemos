@@ -71,7 +71,6 @@
     "@interchainjs/types": "^1.21.0",
     "@interchain-kit/react": "^0.10.1",
     "@types/node": "^24.0.0",
-    "cosmock": "^0.2.0",
     "interchainjs": "^1.21.0",
     "json-schema-to-ts": "^3.1.1",
     "typescript": "catalog:",

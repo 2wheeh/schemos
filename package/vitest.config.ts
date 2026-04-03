@@ -12,7 +12,7 @@ export default defineConfig({
             'src/**/*.test-d.ts',
             'src/**/*.test.ts',
           ],
-          globalSetup: './global-setup.ts',
+          globalSetup: [...(process.env.TYPES ? ['./global-setup.ts'] : [])],
         },
       },
     ],
