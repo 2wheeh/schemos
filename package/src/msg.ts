@@ -111,10 +111,8 @@ export function validateMsg<T>(
 ): T {
   const { validate, ajv } = getValidator(schema)
   if (!validate(data)) {
-    const prefix = options?.context
-      ? `${options.context} validation`
-      : 'Validation'
-    throw new Error(`${prefix} failed: ${ajv.errorsText(validate.errors)}`)
+    const prefix = options?.context ?? 'Validation failed'
+    throw new Error(`${prefix}: ${ajv.errorsText(validate.errors)}`)
   }
   return data as T
 }
@@ -131,16 +129,8 @@ export function buildMsg(
   options?: { context?: string },
 ): Record<string, unknown> {
   const envelope = { [msg]: args }
-
-  const { validate, ajv } = getValidator(schema)
-  if (!validate(envelope)) {
-    const prefix = options?.context
-      ? `${options.context} validation`
-      : 'Validation'
-    throw new Error(
-      `${prefix} failed for "${msg}": ${ajv.errorsText(validate.errors)}`,
-    )
-  }
-
-  return envelope
+  const context = options?.context
+    ? `${options.context} validation failed for "${msg}"`
+    : `Validation failed for "${msg}"`
+  return validateMsg(schema, envelope, { context })
 }

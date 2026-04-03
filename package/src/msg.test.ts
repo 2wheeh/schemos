@@ -136,7 +136,7 @@ describe('validateMsg', () => {
         { name: 'Token' },
         { context: 'Instantiate' },
       ),
-    ).toThrow('Instantiate validation failed:')
+    ).toThrow('Instantiate:')
   })
 
   test('works for flat struct schema (instantiate use case)', () => {
