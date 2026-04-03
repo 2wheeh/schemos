@@ -1,6 +1,6 @@
 import { Ajv } from 'ajv'
 import { describe, expect, test, vi } from 'vitest'
-import { buildMsg, createMsgBuilder } from './msg.js'
+import { buildMsg, createMsgBuilder, validateMsg } from './msg.js'
 import { cw20ExecuteSchema, cw20QuerySchema } from './schemas/cw20/index.js'
 
 describe('createMsgBuilder', () => {
@@ -84,6 +84,97 @@ describe('createMsgBuilder', () => {
         { context: 'Query' },
       ),
     ).toThrow('Query validation failed for "balance"')
+  })
+})
+
+describe('validateMsg', () => {
+  // A simple flat struct schema — typical for instantiate messages
+  const instantiateSchema = {
+    type: 'object',
+    required: ['name', 'symbol', 'decimals', 'initial_balances'],
+    additionalProperties: false,
+    properties: {
+      name: { type: 'string' },
+      symbol: { type: 'string' },
+      decimals: { type: 'integer' },
+      initial_balances: { type: 'array', items: { type: 'object' } },
+    },
+  } as const
+
+  test('returns data as-is when valid', () => {
+    const data = {
+      name: 'Token',
+      symbol: 'TKN',
+      decimals: 6,
+      initial_balances: [],
+    }
+    const result = validateMsg(instantiateSchema, data)
+    expect(result).toBe(data)
+  })
+
+  test('throws when required field is missing', () => {
+    expect(() =>
+      validateMsg(instantiateSchema, { name: 'Token', symbol: 'TKN' }),
+    ).toThrow('Validation failed:')
+  })
+
+  test('throws when field has wrong type', () => {
+    expect(() =>
+      validateMsg(instantiateSchema, {
+        name: 'Token',
+        symbol: 'TKN',
+        decimals: 'six',
+        initial_balances: [],
+      }),
+    ).toThrow('Validation failed:')
+  })
+
+  test('context option prefixes error message', () => {
+    expect(() =>
+      validateMsg(
+        instantiateSchema,
+        { name: 'Token' },
+        { context: 'Instantiate' },
+      ),
+    ).toThrow('Instantiate validation failed:')
+  })
+
+  test('works for flat struct schema (instantiate use case)', () => {
+    const result = validateMsg<{
+      name: string
+      symbol: string
+      decimals: number
+      initial_balances: object[]
+    }>(instantiateSchema, {
+      name: 'Token',
+      symbol: 'TKN',
+      decimals: 6,
+      initial_balances: [],
+    })
+    expect(result.name).toBe('Token')
+    expect(result.decimals).toBe(6)
+  })
+
+  test('reuses validator cache for same schema reference', () => {
+    const compileSpy = vi.spyOn(Ajv.prototype, 'compile')
+
+    validateMsg(instantiateSchema, {
+      name: 'A',
+      symbol: 'A',
+      decimals: 0,
+      initial_balances: [],
+    })
+    const firstCallCount = compileSpy.mock.calls.length
+
+    validateMsg(instantiateSchema, {
+      name: 'B',
+      symbol: 'B',
+      decimals: 0,
+      initial_balances: [],
+    })
+    expect(compileSpy.mock.calls.length).toBe(firstCallCount)
+
+    compileSpy.mockRestore()
   })
 })
 

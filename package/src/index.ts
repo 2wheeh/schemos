@@ -9,5 +9,5 @@ export type {
   MessageNames,
   MsgBuilder,
 } from './msg.js'
-export { buildMsg, createMsgBuilder } from './msg.js'
+export { buildMsg, createMsgBuilder, validateMsg } from './msg.js'
 export type { Coin, StdFee } from './types.js'
