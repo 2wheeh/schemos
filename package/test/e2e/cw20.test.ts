@@ -1,5 +1,3 @@
-import fs from 'node:fs'
-import path from 'node:path'
 import { SigningCosmWasmClient } from '@cosmjs/cosmwasm-stargate'
 import { DirectSecp256k1HdWallet } from '@cosmjs/proto-signing'
 import { GasPrice } from '@cosmjs/stargate'
@@ -9,48 +7,25 @@ import { cw20 } from '../../src/schemas/index.js'
 
 const rpcUrl = inject('rpcUrl')
 const mnemonic = inject('mnemonic')
-
-const RECIPIENT_MNEMONIC = 'zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo wrong'
+const address = inject('address')
+const recipientAddress = inject('recipientAddress')
+const cw20CodeId = inject('cw20CodeId')
 
 describe('schemos e2e: cw20 on local wasmd', () => {
   let client: SigningCosmWasmClient
-  let address: string
-  let recipientAddress: string
   let contractAddress: string
 
-  it('connects and deploys cw20 contract', async () => {
+  it('instantiates cw20 contract', async () => {
     const wallet = await DirectSecp256k1HdWallet.fromMnemonic(mnemonic, {
       prefix: 'wasm',
     })
-    const accounts = await wallet.getAccounts()
-    address = accounts[0]!.address
-
-    const recipientWallet = await DirectSecp256k1HdWallet.fromMnemonic(
-      RECIPIENT_MNEMONIC,
-      { prefix: 'wasm' },
-    )
-    const recipientAccounts = await recipientWallet.getAccounts()
-    recipientAddress = recipientAccounts[0]!.address
-
     client = await SigningCosmWasmClient.connectWithSigner(rpcUrl, wallet, {
       gasPrice: GasPrice.fromString('0stake'),
     })
 
-    // Upload cw20_base.wasm
-    const wasmPath = path.join(
-      import.meta.dirname,
-      '..',
-      'testdata',
-      'cw20_base.wasm',
-    )
-    const wasmCode = fs.readFileSync(wasmPath)
-    const { codeId } = await client.upload(address, wasmCode, 'auto')
-    expect(codeId).toBeGreaterThan(0)
-
-    // Instantiate cw20 token
     const result = await client.instantiate(
       address,
-      codeId,
+      cw20CodeId,
       {
         name: 'Test Token',
         symbol: 'TEST',
