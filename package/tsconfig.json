@@ -1,5 +1,5 @@
 {
-  "include": ["src", "test"],
+  "include": ["src", "global-setup.ts"],
   "compilerOptions": {
     "strict": true,
     "useDefineForClassFields": true,
