@@ -30,6 +30,10 @@
     "./telescope": {
       "import": "./dist/telescope.js",
       "types": "./dist/telescope.d.ts"
+    },
+    "./msg": {
+      "import": "./dist/msg.js",
+      "types": "./dist/msg.d.ts"
     }
   },
   "types": "./dist/index.d.ts",
