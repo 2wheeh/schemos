@@ -42,6 +42,7 @@
  */
 
 import type { CosmWasmExecuteClient, CosmWasmQueryClient } from './client.js'
+import { Json } from './encoding.js'
 import type { Coin } from './types.js'
 
 // StdFee from interchainjs is not readonly!!
@@ -97,9 +98,6 @@ export type EncodeMsgExecuteContractFn = (params: {
   funds: readonly Coin[]
 }) => Uint8Array
 
-const encoder = new TextEncoder()
-const decoder = new TextDecoder()
-
 /**
  * Creates a query-only adapter from a telescope RPC function.
  *
@@ -124,9 +122,9 @@ export function createQueryAdapter(
 ): CosmWasmQueryClient {
   return {
     async queryContractSmart(address: string, query: Record<string, unknown>) {
-      const queryData = encoder.encode(JSON.stringify(query))
+      const queryData = Json.toBytes(query)
       const res = await smartContractState({ address, queryData })
-      return JSON.parse(decoder.decode(res.data))
+      return Json.fromBytes(res.data)
     },
   }
 }
@@ -173,7 +171,7 @@ export function createExecuteAdapter<TExecuteResult>(
       memo?: string,
       funds?: readonly Coin[],
     ) {
-      const msgBytes = encoder.encode(JSON.stringify(msg))
+      const msgBytes = Json.toBytes(msg)
       const value = encodeMsgExecuteContract({
         sender,
         contract: address,

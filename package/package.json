@@ -34,6 +34,10 @@
     "./msg": {
       "import": "./dist/msg.js",
       "types": "./dist/msg.d.ts"
+    },
+    "./encoding": {
+      "import": "./dist/encoding.js",
+      "types": "./dist/encoding.d.ts"
     }
   },
   "types": "./dist/index.d.ts",
