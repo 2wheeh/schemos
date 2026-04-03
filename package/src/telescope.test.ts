@@ -1,10 +1,11 @@
 import { describe, expect, test, vi } from 'vitest'
+import { Json } from './encoding.js'
 import { createExecuteAdapter, createQueryAdapter } from './telescope.js'
 
 describe('createQueryAdapter', () => {
   test('converts JSON query to Uint8Array and parses response', async () => {
     const mockSmartContractState = vi.fn().mockResolvedValue({
-      data: new TextEncoder().encode(JSON.stringify({ balance: '1000' })),
+      data: Json.toBytes({ balance: '1000' }),
     })
 
     const adapter = createQueryAdapter(mockSmartContractState)
@@ -15,9 +16,7 @@ describe('createQueryAdapter', () => {
     expect(result).toEqual({ balance: '1000' })
     expect(mockSmartContractState).toHaveBeenCalledWith({
       address: 'osmo1contract',
-      queryData: new TextEncoder().encode(
-        JSON.stringify({ balance: { address: 'osmo1abc' } }),
-      ),
+      queryData: Json.toBytes({ balance: { address: 'osmo1abc' } }),
     })
   })
 
@@ -26,7 +25,7 @@ describe('createQueryAdapter', () => {
     const { cw20QuerySchema } = await import('./schemas/cw20/query.js')
 
     const mockSmartContractState = vi.fn().mockResolvedValue({
-      data: new TextEncoder().encode(JSON.stringify({ balance: '500' })),
+      data: Json.toBytes({ balance: '500' }),
     })
 
     const adapter = createQueryAdapter(mockSmartContractState)
@@ -41,7 +40,7 @@ describe('createQueryAdapter', () => {
 
 describe('createExecuteAdapter', () => {
   const mockSmartContractState = vi.fn().mockResolvedValue({
-    data: new TextEncoder().encode(JSON.stringify({})),
+    data: Json.toBytes({}),
   })
 
   const mockSignAndBroadcast = vi.fn().mockResolvedValue({
@@ -68,11 +67,9 @@ describe('createExecuteAdapter', () => {
     expect(mockEncode).toHaveBeenCalledWith({
       sender: 'osmo1sender',
       contract: 'osmo1contract',
-      msg: new TextEncoder().encode(
-        JSON.stringify({
-          transfer: { recipient: 'osmo1abc', amount: '1000' },
-        }),
-      ),
+      msg: Json.toBytes({
+        transfer: { recipient: 'osmo1abc', amount: '1000' },
+      }),
       funds: [],
     })
 
@@ -132,7 +129,7 @@ describe('createExecuteAdapter', () => {
     const { cw20 } = await import('./schemas/cw20/index.js')
 
     const queryFn = vi.fn().mockResolvedValue({
-      data: new TextEncoder().encode(JSON.stringify({ balance: '1000' })),
+      data: Json.toBytes({ balance: '1000' }),
     })
     const broadcastFn = vi.fn().mockResolvedValue({ hash: 'tx123' })
     const encodeFn = vi.fn().mockReturnValue(new Uint8Array([1]))

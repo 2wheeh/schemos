@@ -18,6 +18,7 @@ import { MsgExecuteContract as XplaMsgExecuteContract } from '@xpla/xplajs/cosmw
 import { MsgExecuteContract as OsmoMsgExecuteContract } from 'osmojs/cosmwasm/wasm/v1/tx.js'
 import { describe, expect, inject, it } from 'vitest'
 import { createTypedContract } from '../../src/contract.js'
+import { Json } from '../../src/encoding.js'
 import { cw20 } from '../../src/schemas/index.js'
 import {
   createExecuteAdapter,
@@ -124,7 +125,7 @@ describe('schemos/interchain with real xplajs telescope RPC', () => {
           await cosmjsClient.execute(
             sender,
             decoded.contract,
-            JSON.parse(new TextDecoder().decode(decoded.msg)),
+            Json.fromBytes(decoded.msg),
             'auto',
             memo ?? '',
             decoded.funds.map((f: { denom: string; amount: string }) => ({
@@ -180,7 +181,7 @@ describe('schemos/interchain with osmojs MsgExecuteContract', () => {
           await cosmjsClient.execute(
             sender,
             decoded.contract,
-            JSON.parse(new TextDecoder().decode(decoded.msg)),
+            Json.fromBytes(decoded.msg),
             'auto',
             memo ?? '',
             decoded.funds.map((f: { denom: string; amount: string }) => ({
@@ -215,9 +216,7 @@ describe('schemos/interchain with osmojs MsgExecuteContract', () => {
     const params = {
       sender: 'wasm1abc',
       contract: 'wasm1def',
-      msg: new TextEncoder().encode(
-        JSON.stringify({ transfer: { recipient: 'wasm1xyz', amount: '100' } }),
-      ),
+      msg: Json.toBytes({ transfer: { recipient: 'wasm1xyz', amount: '100' } }),
       funds: [] as const,
     }
 
