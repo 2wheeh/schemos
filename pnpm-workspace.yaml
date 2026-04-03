@@ -3,9 +3,12 @@ packages:
   - package
   - test
 
+catalog:
+  typescript: ~5.8.0
+
 onlyBuiltDependencies:
   - esbuild
   - protobufjs
 
-catalog:
-  "typescript": "~5.8.0"
+patchedDependencies:
+  json-schema-to-ts: patches/json-schema-to-ts.patch
