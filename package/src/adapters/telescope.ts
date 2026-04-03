@@ -146,7 +146,7 @@ export function createQueryAdapter(
  *
  * const adapter = createExecuteAdapter(
  *   rpc.cosmwasm.wasm.v1.smartContractState,
- *   (sender, msgs, fee, memo) => signingClient.signAndBroadcast(sender, msgs, fee, memo),
+ *   (sender, messages, fee, memo) => signingClient.signAndBroadcast(sender, messages, fee, memo),
  *   (p) => MsgExecuteContract.encode(MsgExecuteContract.fromPartial(p)).finish(),
  * )
  *

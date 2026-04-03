@@ -20,16 +20,35 @@
   ],
   "exports": {
     ".": {
+      "source": "./src/index.ts",
       "import": "./dist/index.js",
       "types": "./dist/index.d.ts"
     },
     "./schemas": {
+      "source": "./src/schemas/index.ts",
       "import": "./dist/schemas/index.js",
       "types": "./dist/schemas/index.d.ts"
     },
     "./telescope": {
+      "source": "./src/adapters/telescope.ts",
       "import": "./dist/adapters/telescope.js",
       "types": "./dist/adapters/telescope.d.ts"
+    }
+  },
+  "publishConfig": {
+    "exports": {
+      ".": {
+        "import": "./dist/index.js",
+        "types": "./dist/index.d.ts"
+      },
+      "./schemas": {
+        "import": "./dist/schemas/index.js",
+        "types": "./dist/schemas/index.d.ts"
+      },
+      "./telescope": {
+        "import": "./dist/adapters/telescope.js",
+        "types": "./dist/adapters/telescope.d.ts"
+      }
     }
   },
   "types": "./dist/index.d.ts",
@@ -40,8 +59,7 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:types": "TYPES=true vitest run",
-    "build": "tsc -p tsconfig.build.json",
-    "test:e2e": "E2E=true vitest run"
+    "build": "tsc -p tsconfig.build.json"
   },
   "dependencies": {
     "ajv": "^8.18.0"
@@ -50,21 +68,12 @@
     "@ark/attest": "^0.56.0",
     "@cosmjs/amino": "^0.38.1",
     "@cosmjs/cosmwasm-stargate": "^0.38.1",
-    "@cosmjs/proto-signing": "^0.38.1",
-    "@cosmjs/stargate": "^0.38.1",
-    "@cosmos-kit/core": "^2.18.1",
-    "@interchain-kit/react": "^0.10.1",
-    "@interchainjs/cosmos": "^1.21.0",
-    "@interchainjs/cosmos-types": "^1.21.0",
     "@interchainjs/types": "^1.21.0",
+    "@interchain-kit/react": "^0.10.1",
     "@types/node": "^24.0.0",
-    "@xpla/xplajs": "1.7.0",
-    "cosmjs-types": "^0.11.0",
     "cosmock": "^0.2.0",
-    "graz": "^0.4.2",
     "interchainjs": "^1.21.0",
     "json-schema-to-ts": "^3.1.1",
-    "osmojs": "16.15.0",
     "typescript": "catalog:",
     "vitest": "^4.1.2"
   },

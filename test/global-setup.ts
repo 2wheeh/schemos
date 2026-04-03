@@ -51,8 +51,7 @@ export default async function setup({ provide }: TestProject) {
 
   const wasmPath = path.join(
     path.dirname(new URL(import.meta.url).pathname),
-    '..',
-    'testdata',
+    'fixtures',
     'cw20_base.wasm',
   )
   const wasmCode = fs.readFileSync(wasmPath)

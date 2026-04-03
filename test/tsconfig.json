@@ -1,0 +1,14 @@
+{
+  "include": ["src", "global-setup.ts"],
+  "compilerOptions": {
+    "strict": true,
+    "moduleResolution": "Bundler",
+    "module": "preserve",
+    "target": "ES2021",
+    "lib": ["ES2022"],
+    "skipLibCheck": true,
+    "noEmit": true,
+
+    "customConditions": ["source"]
+  }
+}

@@ -1,9 +1,9 @@
 import { SigningCosmWasmClient } from '@cosmjs/cosmwasm-stargate'
 import { DirectSecp256k1HdWallet } from '@cosmjs/proto-signing'
 import { GasPrice } from '@cosmjs/stargate'
+import { createTypedContract } from 'schemos'
+import { cw20 } from 'schemos/schemas'
 import { describe, expect, inject, it } from 'vitest'
-import { createTypedContract } from '../../src/contract.js'
-import { cw20 } from '../../src/schemas/index.js'
 
 const rpcUrl = inject('rpcUrl')
 const mnemonic = inject('mnemonic')

@@ -20,10 +20,9 @@ import { Secp256k1HDWallet } from '@interchainjs/cosmos/wallets/secp256k1hd'
 import { MsgExecuteContract as TelescopeMsgExecuteContract } from '@xpla/xplajs/cosmwasm/wasm/v1/tx.js'
 import { MessageComposer } from '@xpla/xplajs/cosmwasm/wasm/v1/tx.registry.js'
 import { MsgExecuteContract as CosmjsMsgExecuteContract } from 'cosmjs-types/cosmwasm/wasm/v1/tx'
+import { createMsgBuilder, Json } from 'schemos'
+import { cw20 } from 'schemos/schemas'
 import { describe, expect, inject, it } from 'vitest'
-import { Json } from '../../src/encoding/index.js'
-import { createMsgBuilder } from '../../src/msg.js'
-import { cw20 } from '../../src/schemas/index.js'
 
 const rpcUrl = inject('rpcUrl')
 const mnemonic = inject('mnemonic')
