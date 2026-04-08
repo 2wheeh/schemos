@@ -92,6 +92,46 @@ export function createMsgBuilder<const TSchema extends JSONSchema>(
   }) as MsgBuilder<FromSchema<TSchema>>
 }
 
+/** Typed callable interface returned by createMsgValidator. */
+export type MsgValidator<TMsg> = (
+  data: TMsg,
+  options?: { context?: string },
+) => TMsg
+
+/**
+ * Create a typed message validator from a JSON Schema.
+ *
+ * Returns a callable that validates data and returns it with the inferred
+ * type. The schema type is resolved once at factory level — same pattern
+ * as `createTypedContract` and `createMsgBuilder`.
+ *
+ * @example
+ * ```ts
+ * import { createMsgValidator } from 'schemos'
+ * import { cw20 } from 'schemos/schemas'
+ *
+ * const validateInit = createMsgValidator(cw20.instantiate)
+ * const msg = validateInit({
+ *   name: 'Token', symbol: 'TKN', decimals: 6, initial_balances: []
+ * })
+ * // msg type is inferred from cw20.instantiate schema
+ *
+ * await client.instantiate(sender, codeId, msg, 'label', 'auto')
+ * ```
+ */
+export function createMsgValidator<const TSchema extends JSONSchema>(
+  schema: TSchema,
+): MsgValidator<FromSchema<TSchema>>
+// TS2589 mitigation: factory isolates FromSchema to creation time, but MsgValidator
+// exposes it directly as return type — tsc fully resolves it on declaration emit.
+// Overload hides the impl behind `unknown`. MsgBuilder doesn't need this because
+// its inner generic K (MessageNames/MessageArgs) defers resolution.
+export function createMsgValidator(schema: JSONSchema): MsgValidator<unknown> {
+  return (data: unknown, options?: { context?: string }) => {
+    return validateMsg(schema, data, options)
+  }
+}
+
 /**
  * Validate data against a JSON Schema. Returns the data as-is if valid,
  * throws a descriptive error if invalid.

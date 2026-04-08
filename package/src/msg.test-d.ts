@@ -6,9 +6,10 @@ import type {
   MessageArgs,
   MessageNames,
 } from './msg.js'
-import { createMsgBuilder } from './msg.js'
+import { createMsgBuilder, createMsgValidator } from './msg.js'
 import {
   cw20ExecuteSchema,
+  cw20InstantiateSchema,
   cw20QuerySchema,
   type cw20ResponseSchemas,
 } from './schemas/cw20/index.js'
@@ -167,4 +168,21 @@ test('createMsgBuilder rejects typo in field name at type level', () => {
   expectTypeOf<{ amount: string; recipent: string }>().not.toExtend<
     MessageArgs<Cw20Execute, 'transfer'>
   >()
+})
+
+// ---------------------------------------------------------------------------
+// createMsgValidator: factory-level type inference
+// ---------------------------------------------------------------------------
+test('createMsgValidator infers instantiate struct properties', () => {
+  const validateInit = createMsgValidator(cw20InstantiateSchema)
+  type Result = ReturnType<typeof validateInit>
+  expectTypeOf<Result>().toHaveProperty('name')
+  expectTypeOf<Result>().toHaveProperty('symbol')
+  expectTypeOf<Result>().toHaveProperty('decimals')
+})
+
+test('createMsgValidator infers execute msg union', () => {
+  const validateExec = createMsgValidator(cw20ExecuteSchema)
+  type Result = ReturnType<typeof validateExec>
+  expectTypeOf<Result>().toEqualTypeOf<FromSchema<typeof cw20ExecuteSchema>>()
 })
