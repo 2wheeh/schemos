@@ -1,7 +1,16 @@
 import { Ajv } from 'ajv'
 import { describe, expect, test, vi } from 'vitest'
-import { buildMsg, createMsgBuilder, validateMsg } from './msg.js'
-import { cw20ExecuteSchema, cw20QuerySchema } from './schemas/cw20/index.js'
+import {
+  buildMsg,
+  createMsgBuilder,
+  createMsgValidator,
+  validateMsg,
+} from './msg.js'
+import {
+  cw20ExecuteSchema,
+  cw20InstantiateSchema,
+  cw20QuerySchema,
+} from './schemas/cw20/index.js'
 
 describe('createMsgBuilder', () => {
   const cw20Msg = createMsgBuilder(cw20ExecuteSchema)
@@ -191,6 +200,59 @@ describe('buildMsg Ajv caching', () => {
 
     // Second call should reuse cached validator
     buildMsg(cw20ExecuteSchema, 'burn', { amount: '1' })
+    expect(compileSpy.mock.calls.length).toBe(firstCallCount)
+
+    compileSpy.mockRestore()
+  })
+})
+
+describe('createMsgValidator', () => {
+  const validateInit = createMsgValidator(cw20InstantiateSchema)
+
+  test('returns data as-is when valid', () => {
+    const result = validateInit({
+      name: 'Token',
+      symbol: 'TKN',
+      decimals: 6,
+      initial_balances: [],
+    })
+    expect(result.name).toBe('Token')
+    expect(result.decimals).toBe(6)
+  })
+
+  test('throws when required field is missing', () => {
+    // @ts-expect-error — intentionally missing required fields for runtime test
+    expect(() => validateInit({ name: 'Token', symbol: 'TKN' })).toThrow(
+      'Validation failed:',
+    )
+  })
+
+  test('throws when field has wrong type', () => {
+    expect(() =>
+      validateInit({
+        name: 'Token',
+        symbol: 'TKN',
+        // @ts-expect-error — intentionally wrong type for runtime test
+        decimals: 'six',
+        initial_balances: [],
+      }),
+    ).toThrow('Validation failed:')
+  })
+
+  test('context option prefixes error message', () => {
+    expect(() =>
+      // @ts-expect-error — intentionally missing required fields for runtime test
+      validateInit({ name: 'Token' }, { context: 'Instantiate' }),
+    ).toThrow('Instantiate:')
+  })
+
+  test('reuses validator cache across calls', () => {
+    const compileSpy = vi.spyOn(Ajv.prototype, 'compile')
+
+    validateInit({ name: 'A', symbol: 'A', decimals: 0, initial_balances: [] })
+    const firstCallCount = compileSpy.mock.calls.length
+
+    validateInit({ name: 'B', symbol: 'B', decimals: 0, initial_balances: [] })
     expect(compileSpy.mock.calls.length).toBe(firstCallCount)
 
     compileSpy.mockRestore()

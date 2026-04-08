@@ -1,0 +1,5 @@
+---
+"schemos": minor
+---
+
+add createMsgValidator

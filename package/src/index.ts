@@ -8,6 +8,7 @@ export type {
   MessageArgs,
   MessageNames,
   MsgBuilder,
+  MsgValidator,
 } from './msg.js'
-export { buildMsg, createMsgBuilder, validateMsg } from './msg.js'
+export { createMsgBuilder, createMsgValidator } from './msg.js'
 export type { Coin, StdFee } from './types.js'

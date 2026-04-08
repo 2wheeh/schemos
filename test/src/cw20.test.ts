@@ -1,7 +1,7 @@
 import { SigningCosmWasmClient } from '@cosmjs/cosmwasm-stargate'
 import { DirectSecp256k1HdWallet } from '@cosmjs/proto-signing'
 import { GasPrice } from '@cosmjs/stargate'
-import { createTypedContract, validateMsg } from 'schemos'
+import { createMsgValidator, createTypedContract } from 'schemos'
 import { cw20 } from 'schemos/schemas'
 import { describe, expect, inject, it } from 'vitest'
 
@@ -23,8 +23,8 @@ describe('schemos e2e: cw20 on local wasmd', () => {
       gasPrice: GasPrice.fromString('0stake'),
     })
 
-    // validateMsg validates flat struct schemas (instantiate is a struct, not an enum)
-    const initMsg = validateMsg(cw20.instantiate, {
+    const validateInit = createMsgValidator(cw20.instantiate)
+    const validatedMsg = validateInit({
       name: 'Test Token',
       symbol: 'TEST',
       decimals: 6,
@@ -35,7 +35,7 @@ describe('schemos e2e: cw20 on local wasmd', () => {
     const result = await client.instantiate(
       address,
       cw20CodeId,
-      initMsg,
+      validatedMsg,
       'cw20-test',
       'auto',
     )
@@ -44,8 +44,10 @@ describe('schemos e2e: cw20 on local wasmd', () => {
   })
 
   it('rejects invalid instantiate msg at runtime', () => {
+    const validateInit = createMsgValidator(cw20.instantiate)
     expect(() =>
-      validateMsg(cw20.instantiate, {
+      // @ts-expect-error - missing required fields
+      validateInit({
         name: 'Test Token',
         symbol: 'TEST',
         // missing required: decimals, initial_balances
