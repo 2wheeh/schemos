@@ -1,0 +1,281 @@
+# Msg
+
+The msg module provides type inference and validated message building from JSON Schema — the core of schemos.
+
+```ts
+import { createMsgBuilder, createMsgValidator } from 'schemos'
+import type {
+  InferMsg, MessageNames, MessageArgs, InferResponse,
+  MsgBuilder, MsgValidator,
+} from 'schemos'
+```
+
+## Why Msg?
+
+[`createTypedContract`](/api/create-typed-contract) binds msg building to a specific client and contract address. The msg module gives you just the typed message envelope or validated data — useful when you want to:
+
+- Build messages without a client (e.g., for batch transactions)
+- Use protobuf encoding from your own chain SDK
+- Validate instantiate messages before deploying
+- Compose messages for `executeMultiple` or multi-message transactions
+
+## createMsgBuilder
+
+Creates a reusable typed message builder from a JSON Schema. The schema type is resolved once at factory level — subsequent calls have zero type overhead.
+
+```ts
+function createMsgBuilder<TSchema extends JSONSchema>(
+  schema: TSchema,
+): MsgBuilder<FromSchema<TSchema>>
+```
+
+### Parameters
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `schema` | `JSONSchema` | A `cargo schema` JSON object imported as `as const` |
+
+### Returns
+
+A callable `MsgBuilder` that builds validated `{ [msgName]: args }` envelopes.
+
+### Example
+
+```ts twoslash
+// @moduleResolution: bundler
+// @module: esnext
+import { createMsgBuilder } from 'schemos'
+import { cw20 } from 'schemos/schemas'
+
+const cw20Msg = createMsgBuilder(cw20.execute)
+
+// Typed envelope — autocomplete on msg names and args
+const envelope = cw20Msg('transfer', { amount: '1000', recipient: 'osmo1...' })
+// envelope: { transfer: { amount: string; recipient: string } }
+```
+
+### Batch usage
+
+The schema is compiled once at factory creation. Safe for repeated calls:
+
+```ts
+const cw20Msg = createMsgBuilder(cw20.execute)
+
+const msgs = [
+  cw20Msg('transfer', { amount: '100', recipient: addr1 }),
+  cw20Msg('transfer', { amount: '200', recipient: addr2 }),
+]
+```
+
+### With telescope protobuf encoding
+
+```ts twoslash
+declare const sender: string
+declare const contract: string
+// ---cut---
+// @moduleResolution: bundler
+// @module: esnext
+import { createMsgBuilder, Json } from 'schemos'
+import { cw20 } from 'schemos/schemas'
+import { MsgExecuteContract } from 'osmojs/cosmwasm/wasm/v1/tx'
+
+const cw20Msg = createMsgBuilder(cw20.execute)
+const envelope = cw20Msg('transfer', { amount: '1000', recipient: 'osmo1...' })
+
+// Use with telescope's protobuf encoding
+MsgExecuteContract.fromPartial({
+  sender,
+  contract,
+  msg: Json.toBytes(envelope),
+  funds: [],
+})
+```
+
+## createMsgValidator
+
+Creates a typed validator from a JSON Schema. Useful for validating instantiate messages and other flat struct schemas where the envelope pattern (`{ [msgName]: args }`) doesn't apply.
+
+```ts
+function createMsgValidator<TSchema extends JSONSchema>(
+  schema: TSchema,
+): MsgValidator<FromSchema<TSchema>>
+```
+
+### Parameters
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `schema` | `JSONSchema` | A `cargo schema` JSON object imported as `as const` |
+
+### Returns
+
+A callable `MsgValidator` that type-checks the input at compile time and validates it at runtime.
+
+### Example
+
+```ts twoslash
+// @moduleResolution: bundler
+// @module: esnext
+import type { SigningCosmWasmClient } from '@cosmjs/cosmwasm-stargate'
+declare const client: SigningCosmWasmClient
+declare const sender: string
+declare const codeId: number
+// ---cut---
+import { createMsgValidator } from 'schemos'
+import { cw20 } from 'schemos/schemas'
+
+const validateInit = createMsgValidator(cw20.instantiate)
+
+// initMsg type is inferred from cw20.instantiate schema
+const initMsg = validateInit({
+  name: 'Token',
+  symbol: 'TKN',
+  decimals: 6,
+  initial_balances: [{ address: 'osmo1...', amount: '1000000' }],
+})
+
+await client.instantiate(sender, codeId, initMsg, 'label', 'auto')
+```
+
+### Error handling
+
+```ts twoslash
+// @moduleResolution: bundler
+// @module: esnext
+// @errors: 2322 2561 2345
+import { createMsgValidator } from 'schemos'
+import { cw20 } from 'schemos/schemas'
+// ---cut---
+// Compile error — missing required fields (symbol, decimals, initial_balances)
+const validateInit = createMsgValidator(cw20.instantiate)
+
+validateInit({
+  name: 'Token',
+  symbol: 'TKN',
+  decimal: 6,
+  initial_balances: [{ address: 'osmo1...', amount: '1000000' }],
+})
+
+validateInit({
+  name: 'Token',
+  symbol: 'TKN',
+  decimals: 6,
+  initial_balances: [{ address: 'osmo1...', amount: 1000000 }],
+})
+
+// Runtime error — if invalid data bypasses type checking (e.g., from external source)
+// throws: Validation failed: data must have required property 'symbol', ...
+```
+
+### Validation
+
+`createMsgBuilder` and `createMsgValidator` both validate data against the schema at runtime. Validation errors are thrown immediately — before gas is spent.
+
+Validators are cached in a module-level `WeakMap` keyed by schema reference — out-of-scope schemas are garbage collected.
+
+## CosmWasm Format Validators
+
+Ajv is configured with custom format validators for CosmWasm-specific integer formats emitted by `cosmwasm-schema`:
+
+| Format | Range | Description |
+|--------|-------|-------------|
+| `uint8` | 0 - 255 | 8-bit unsigned integer |
+| `uint32` | 0 - 4,294,967,295 | 32-bit unsigned integer |
+| `uint64` | 0 - `Number.MAX_SAFE_INTEGER` | 64-bit unsigned integer (limited by JS number precision) |
+
+These are registered automatically when any schema is compiled. Values above `Number.MAX_SAFE_INTEGER` for uint64 must be handled via `BigInt` at the application layer.
+
+## Type Utilities
+
+### InferMsg
+
+Infer the full TypeScript union type from a JSON Schema:
+
+```ts
+type InferMsg<TSchema extends JSONSchema> = FromSchema<TSchema>
+```
+
+```ts
+import type { InferMsg } from 'schemos'
+import { cw20 } from 'schemos/schemas'
+
+type Cw20ExecuteMsg = InferMsg<typeof cw20.execute>
+// { transfer: { recipient: string; amount: string } }
+// | { burn: { amount: string } }
+// | { send: { contract: string; amount: string; msg: string } }
+// | ...
+```
+
+### MessageNames
+
+Extract all top-level message names from a message union:
+
+```ts
+type MessageNames<T> = T extends Record<string, unknown> ? keyof T & string : never
+```
+
+```ts
+import type { InferMsg, MessageNames } from 'schemos'
+import { cw20 } from 'schemos/schemas'
+
+type Names = MessageNames<InferMsg<typeof cw20.execute>>
+// 'transfer' | 'burn' | 'send' | 'mint' | 'increase_allowance' | ...
+```
+
+### MessageArgs
+
+Extract the args type for a specific message name:
+
+```ts
+type MessageArgs<T, K extends string> = T extends Record<K, infer V> ? V : never
+```
+
+```ts
+import type { InferMsg, MessageArgs } from 'schemos'
+import { cw20 } from 'schemos/schemas'
+
+type TransferArgs = MessageArgs<InferMsg<typeof cw20.execute>, 'transfer'>
+// { recipient: string; amount: string }
+```
+
+### InferResponse
+
+Infer a specific response type from a responses schema map:
+
+```ts
+type InferResponse<
+  TResponses extends Record<string, JSONSchema>,
+  K extends keyof TResponses & string,
+> = FromSchema<TResponses[K]>
+```
+
+```ts
+import type { InferResponse } from 'schemos'
+import { cw20 } from 'schemos/schemas'
+
+type BalanceResponse = InferResponse<typeof cw20.responses, 'balance'>
+// { balance: string }
+```
+
+### MsgBuilder
+
+The callable type returned by `createMsgBuilder`:
+
+```ts
+type MsgBuilder<TMsg> = <K extends MessageNames<TMsg>>(
+  msg: K,
+  args: MessageArgs<TMsg, K>,
+  options?: { context?: string },
+) => { [P in K]: MessageArgs<TMsg, K> }
+```
+
+### MsgValidator
+
+The callable type returned by `createMsgValidator`:
+
+```ts
+type MsgValidator<TMsg> = (
+  data: TMsg,
+  options?: { context?: string },
+) => TMsg
+```

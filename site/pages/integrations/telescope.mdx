@@ -2,7 +2,9 @@
 
 Telescope-generated SDKs (xplajs, osmojs, neutronjs) use protobuf RPCs instead of cosmjs's JSON API. schemos provides a generic adapter via `schemos/telescope`.
 
-## Why an adapter?
+See [Telescope Adapters API](/api/telescope) for full type reference.
+
+## Why an Adapter?
 
 CosmWasm is an opt-in Cosmos SDK module. `MsgExecuteContract` and query RPCs live in each chain's telescope package — not in a shared package:
 
@@ -19,42 +21,46 @@ The adapter accepts callbacks so schemos doesn't depend on any specific chain SD
 
 ## Query Adapter
 
-```typescript twoslash
+```ts twoslash
 // @moduleResolution: bundler
 // @module: esnext
+declare const rpcEndpoint: string
+// ---cut---
 import { createQueryAdapter } from 'schemos/telescope'
 import { createTypedContract } from 'schemos'
 import { cw20 } from 'schemos/schemas'
-import type { SmartContractStateFn } from 'schemos/telescope'
+import { createGetSmartContractState } from '@xpla/xplajs/cosmwasm/wasm/v1/query.rpc.func'
 
-// From any telescope SDK's RPC client
-declare const smartContractState: SmartContractStateFn
-
+const smartContractState = createGetSmartContractState(rpcEndpoint)
 const adapter = createQueryAdapter(smartContractState)
-const token = createTypedContract(adapter, 'osmo1...', {
+
+const token = createTypedContract(adapter, 'xpla1...', {
   query: cw20.query,
   responses: cw20.responses,
 })
 
-const { balance } = await token.query('balance', { address: 'osmo1...' })
+const { balance } = await token.query('balance', { address: 'xpla1...' })
 //      ^?
 ```
 
 ## Execute Adapter
 
-```typescript twoslash
+```ts twoslash
 // @moduleResolution: bundler
 // @module: esnext
-import { createExecuteAdapter, SmartContractStateFn } from 'schemos/telescope'
-import type { SignAndBroadcastFn } from 'schemos/telescope'
+import type { DirectSigner, AminoSigner } from '@interchainjs/cosmos'
+declare const signingClient: DirectSigner | AminoSigner
+declare const rpcEndpoint: string
+declare const sender: string
+// ---cut---
+import { createExecuteAdapter } from 'schemos/telescope'
 import { createTypedContract } from 'schemos'
 import { cw20 } from 'schemos/schemas'
-import { MsgExecuteContract } from 'osmojs/cosmwasm/wasm/v1/tx'
+import { MsgExecuteContract } from '@xpla/xplajs/cosmwasm/wasm/v1/tx'
+import { createGetSmartContractState } from '@xpla/xplajs/cosmwasm/wasm/v1/query.rpc.func'
 
-declare const smartContractState: SmartContractStateFn
-declare const signAndBroadcast: SignAndBroadcastFn
-declare const contractAddress: string
-declare const sender: string
+const smartContractState = createGetSmartContractState(rpcEndpoint)
+const { signAndBroadcast } = signingClient
 
 const adapter = createExecuteAdapter(
   smartContractState,
@@ -65,12 +71,12 @@ const adapter = createExecuteAdapter(
     ).finish(),
 )
 
-const token = createTypedContract(adapter, contractAddress, cw20)
+const token = createTypedContract(adapter, 'xpla1...', cw20)
 
 await token.execute(
   sender,
   'transfer',
-  { recipient: '...', amount: '1000' },
+  { recipient: 'xpla1...', amount: '1000' },
   'auto',
 )
 ```
@@ -79,20 +85,28 @@ await token.execute(
 The `MsgExecuteContract.encode()` pattern is identical across all telescope packages — only the import path changes.
 :::
 
-## xplajs
+## Chain-specific imports
 
-```typescript
+### xplajs
+
+```ts
 import { MsgExecuteContract } from '@xpla/xplajs/cosmwasm/wasm/v1/tx'
+import { createGetSmartContractState } from '@xpla/xplajs/cosmwasm/wasm/v1/query.rpc.func'
 ```
 
-## osmojs
+### osmojs
 
-```typescript
+```ts
 import { MsgExecuteContract } from 'osmojs/cosmwasm/wasm/v1/tx'
 ```
 
-## neutronjs
+:::note
+osmojs uses an older telescope codegen that exports a class-based `QueryClientImpl` instead of `createGetSmartContractState`. The `smartContractState` method signature is compatible — bind it from the query client instance.
+:::
 
-```typescript
+### neutronjs
+
+```ts
 import { MsgExecuteContract } from 'neutronjs/cosmwasm/wasm/v1/tx'
+import { createGetSmartContractState } from 'neutronjs/cosmwasm/wasm/v1/query.rpc.func'
 ```

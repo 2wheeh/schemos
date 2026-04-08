@@ -1,0 +1,110 @@
+# Custom Contracts
+
+schemos works with any CosmWasm contract that has JSON Schema output from `cargo schema`.
+
+## Generate Schemas
+
+In your contract's Rust project:
+
+```bash
+cargo schema
+# → schema/raw/
+#     execute.json
+#     query.json
+#     response_to_balance.json
+#     response_to_get_config.json
+#     ...
+```
+
+## Import as `as const`
+
+Copy the JSON files into your TypeScript project and paste them as `as const` objects:
+
+```ts
+const executeSchema = { /* paste cargo schema JSON here */ } as const
+const querySchema = { /* paste cargo schema JSON here */ } as const
+```
+
+:::info
+`as const` is required. Without it, TypeScript widens the JSON to generic types and `json-schema-to-ts` cannot infer specific message types.
+
+This is a TypeScript limitation — JSON imports (`import ... from '*.json'`) lose literal types during module resolution. The same constraint applies to EVM tooling like abitype/viem with ABI JSON. Paste the JSON directly and mark it `as const`.
+
+See. https://github.com/microsoft/TypeScript/issues/32063
+:::
+
+## Basic Usage
+
+```ts
+import { createTypedContract } from 'schemos'
+
+const contract = createTypedContract(client, 'osmo1...', {
+  execute: executeSchema,
+  query: querySchema,
+})
+
+// Full autocomplete + type checking for your contract messages
+await contract.execute(sender, 'your_msg', { /* typed fields */ }, 'auto')
+const result = await contract.query('get_state', {})
+// result: unknown (no response schemas provided)
+```
+
+## With Response Typing
+
+Paste response schemas and map them by query message name:
+
+```ts
+const responseSchemas = {
+  get_state: { /* paste response_to_get_state.json */ } as const,
+  get_config: { /* paste response_to_get_config.json */ } as const,
+}
+
+const contract = createTypedContract(client, 'osmo1...', {
+  execute: executeSchema,
+  query: querySchema,
+  responses: responseSchemas,
+})
+
+// Return type inferred from response schema
+const state = await contract.query('get_state', {})
+// state: { owner: string; count: number; ... } — inferred from response JSON Schema
+```
+
+## Standalone Message Building
+
+Use [`createMsgBuilder`](/api/msg#createmsgbuilder) when you need typed messages without a client:
+
+```ts
+import { createMsgBuilder } from 'schemos'
+
+const myMsg = createMsgBuilder(executeSchema)
+const envelope = myMsg('your_msg', { /* typed fields */ })
+
+// Use envelope with any client or SDK
+await client.execute(sender, contract, envelope, fee)
+```
+
+## Type Extraction
+
+Extract TypeScript types from your schemas for use elsewhere:
+
+```ts
+import type { InferMsg, MessageNames, MessageArgs, InferResponse } from 'schemos'
+
+// Full message union type
+type MyExecuteMsg = InferMsg<typeof executeSchema>
+
+// Just the message names
+type MyMsgNames = MessageNames<MyExecuteMsg>
+
+// Args for a specific message
+type YourMsgArgs = MessageArgs<MyExecuteMsg, 'your_msg'>
+
+// Response type for a specific query
+type StateResponse = InferResponse<typeof responseSchemas, 'get_state'>
+```
+
+## Limitations
+
+- **Source required**: JSON Schema is not stored on-chain. You need the contract source (or its published schema) to use schemos. This is the same limitation as EVM contracts without verified source/ABI.
+- **`as const` required**: JSON imports lose literal types during module resolution ([TypeScript#32063](https://github.com/microsoft/TypeScript/issues/32063)). Paste the JSON directly and mark it `as const`.

@@ -4,22 +4,25 @@
 
 ## Execute + Query
 
-```typescript twoslash
+```ts twoslash
 // @moduleResolution: bundler
 // @module: esnext
+import type { OfflineSigner } from '@cosmjs/proto-signing'
+declare const rpcEndpoint: string
+declare const signer: OfflineSigner
+declare const contractAddress: string
+declare const senderAddress: string
+// ---cut---
+import { SigningCosmWasmClient } from '@cosmjs/cosmwasm-stargate'
 import { createTypedContract } from 'schemos'
-import type { CosmWasmExecuteClient } from 'schemos'
 import { cw20 } from 'schemos/schemas'
 
-// SigningCosmWasmClient satisfies CosmWasmExecuteClient
-declare const client: CosmWasmExecuteClient
-const contractAddress = 'osmo1...'
-
+const client = await SigningCosmWasmClient.connectWithSigner(rpcEndpoint, signer)
 const token = createTypedContract(client, contractAddress, cw20)
 
 // Message names autocomplete, fields are type-checked
 await token.execute(
-  'osmo1sender',
+  senderAddress,
   'transfer',
   { recipient: 'osmo1...', amount: '1000' },
   'auto',
@@ -27,21 +30,23 @@ await token.execute(
 
 // Return type inferred from response schema
 const { balance } = await token.query('balance', { address: 'osmo1...' })
-//      ^?
+//       ^?
 ```
 
 ## Query-only
 
 Use `CosmWasmClient` (no signing) for read-only access:
 
-```typescript twoslash
+```ts twoslash
 // @moduleResolution: bundler
 // @module: esnext
+declare const rpcEndpoint: string
+// ---cut---
+import { CosmWasmClient } from '@cosmjs/cosmwasm-stargate'
 import { createTypedContract } from 'schemos'
-import type { CosmWasmQueryClient } from 'schemos'
 import { cw20 } from 'schemos/schemas'
 
-declare const client: CosmWasmQueryClient
+const client = await CosmWasmClient.connect(rpcEndpoint)
 
 const token = createTypedContract(client, 'osmo1...', {
   query: cw20.query,
@@ -50,22 +55,21 @@ const token = createTypedContract(client, 'osmo1...', {
 
 // query() available with typed responses
 const { balance } = await token.query('balance', { address: 'osmo1...' })
-//      ^?
+//       ^?
+
 
 // execute() does not exist on query-only contracts
 ```
 
 ## Full Example
 
-```typescript twoslash
-
+```ts twoslash
+// @moduleResolution: bundler
+// @module: esnext
 declare const mnemonic: string
 declare const rpcEndpoint: string
 declare const contractAddress: string
-
 // ---cut---
-// @moduleResolution: bundler
-// @module: esnext
 import { SigningCosmWasmClient } from '@cosmjs/cosmwasm-stargate'
 import { DirectSecp256k1HdWallet } from '@cosmjs/proto-signing'
 import { GasPrice } from '@cosmjs/stargate'
@@ -93,5 +97,5 @@ await token.execute(
 )
 
 const { balance } = await token.query('balance', { address: account.address })
-console.log(balance) // string
+//       ^?
 ```
