@@ -19,6 +19,7 @@
     "@cosmjs/proto-signing": "^0.38.1",
     "@cosmjs/stargate": "^0.38.1",
     "@cosmos-kit/react": "^2.24.1",
+    "@interchainjs/cosmos": "^1.21.0",
     "@interchain-kit/react": "^0.10.1",
     "@types/react": "^19.1.0",
     "@types/react-dom": "^19.1.0",

@@ -1,0 +1,139 @@
+# createTypedContract
+
+Creates a typed contract instance that binds JSON Schema validation and type inference to a CosmWasm client.
+
+```ts
+import { createTypedContract } from 'schemos'
+```
+
+## Signatures
+
+### Execute + Query
+
+```ts
+function createTypedContract<TExecuteSchema, TQuerySchema, TResponses, TExecuteResult>(
+  client: CosmWasmExecuteClient<TExecuteResult>,
+  contractAddress: string,
+  schemas: {
+    execute: TExecuteSchema
+    query: TQuerySchema
+    responses?: TResponses
+    validateResponses?: boolean
+  },
+): TypedContract<FromSchema<TExecuteSchema>, FromSchema<TQuerySchema>, TExecuteResult, TResponses>
+```
+
+### Query-only
+
+```ts
+function createTypedContract<TQuerySchema, TResponses>(
+  client: CosmWasmQueryClient,
+  contractAddress: string,
+  schemas: {
+    query: TQuerySchema
+    responses?: TResponses
+    validateResponses?: boolean
+  },
+): TypedQueryContract<FromSchema<TQuerySchema>, TResponses>
+```
+
+When only `query` (and optionally `responses`) is provided, the returned contract has no `execute` method.
+
+## Parameters
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `client` | `CosmWasmExecuteClient` \| `CosmWasmQueryClient` | Any object matching the [client interface](/overview#client-interface). cosmjs clients work directly; telescope SDKs need an [adapter](/api/telescope). |
+| `contractAddress` | `string` | Contract bech32 address |
+| `schemas` | `{ execute?, query, responses?, validateResponses? }` | Raw `cargo schema` JSON imported as `as const` |
+
+## Return Type
+
+### TypedContract
+
+Returned when `execute` schema is provided.
+
+```ts
+interface TypedContract<TExecuteMsg, TQueryMsg, TExecuteResult, TResponses> {
+  execute<K extends MessageNames<TExecuteMsg>>(
+    sender: string,
+    msg: K,
+    args: MessageArgs<TExecuteMsg, K>,
+    fee: StdFee | 'auto',
+    memo?: string,
+    funds?: readonly Coin[],
+  ): Promise<TExecuteResult>
+
+  query<K extends MessageNames<TQueryMsg>>(
+    msg: K,
+    args: MessageArgs<TQueryMsg, K>,
+  ): Promise</* inferred from responses schema */>
+}
+```
+
+### TypedQueryContract
+
+Returned when only `query` is provided (no `execute`).
+
+```ts
+interface TypedQueryContract<TQueryMsg, TResponses> {
+  query<K extends MessageNames<TQueryMsg>>(
+    msg: K,
+    args: MessageArgs<TQueryMsg, K>,
+  ): Promise</* inferred from responses schema */>
+}
+```
+
+## Response Typing
+
+Query return types are inferred from the `responses` schema map. Each key maps a query message name to its response JSON Schema:
+
+```ts
+const token = createTypedContract(client, addr, {
+  query: cw20.query,
+  responses: cw20.responses,
+})
+
+const { balance } = await token.query('balance', { address: 'osmo1...' })
+// balance: string — inferred from response schema
+```
+
+Without `responses`, query returns `unknown`.
+
+Execute return types come from the client's `TExecuteResult` generic — not from the contract schema.
+
+### Response Validation
+
+Set `validateResponses: true` to also validate query responses at runtime against the response schemas:
+
+```ts
+const token = createTypedContract(client, addr, {
+  query: cw20.query,
+  responses: cw20.responses,
+  validateResponses: true,
+})
+
+// Response is validated against the response schema after fetching
+const { balance } = await token.query('balance', { address: 'osmo1...' })
+```
+
+This is useful for catching unexpected contract responses early. Disabled by default since responses come from the chain and are typically well-formed.
+
+## Runtime Validation
+
+Every `execute` and `query` call validates the message envelope against the JSON Schema using Ajv before sending. If validation fails, an error is thrown immediately — no gas is spent.
+
+```ts
+await token.execute(sender, 'transfer', { recipient: 123 }, 'auto')
+// throws: Execute validation failed for "transfer": data/transfer/recipient must be string
+```
+
+Validators are compiled once per schema and cached via `WeakMap`. Custom CosmWasm format validators (uint8, uint32, uint64) are registered automatically.
+
+## Examples
+
+See integration guides for full usage examples:
+- [cosmjs](/integrations/cosmjs) — direct usage, no adapter needed
+- [Telescope SDKs](/integrations/telescope) — xplajs, osmojs, neutronjs with adapter
+- [Wallet Kits](/integrations/wallet-kits) — React hooks (interchain-kit, cosmos-kit, graz)
+- [Custom Contracts](/guides/custom-contracts) — your own contract schemas

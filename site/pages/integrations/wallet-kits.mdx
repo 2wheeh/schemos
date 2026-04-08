@@ -6,7 +6,7 @@ schemos works with any React wallet library. Here are patterns for the most popu
 
 [interchain-kit](https://github.com/cosmology-tech/interchain-kit) provides `useChain` with an interchainjs signing client — requires the `schemos/telescope` adapter.
 
-```typescript twoslash
+```ts twoslash
 // @moduleResolution: bundler
 // @module: esnext
 import { useMemo } from 'react'
@@ -44,7 +44,7 @@ function useCw20(contractAddress: string, rpcEndpoint: string) {
 
 [cosmos-kit](https://github.com/cosmology-tech/cosmos-kit) returns cosmjs clients — **no adapter needed**.
 
-```typescript twoslash
+```ts twoslash
 // @moduleResolution: bundler
 // @module: esnext
 import { useMemo } from 'react'
@@ -66,9 +66,7 @@ function useCw20(contractAddress: string) {
 
 [graz](https://github.com/graz-sh/graz) provides lightweight cosmjs hooks — **no adapter needed**.
 
-graz returns a multi-chain map (`Record<string, SigningCosmWasmClient | null>`), so extract by chain ID and null-check:
-
-```typescript twoslash
+```ts twoslash
 // @moduleResolution: bundler
 // @module: esnext
 import { useMemo } from 'react'
@@ -98,3 +96,5 @@ function useCw20(contractAddress: string) {
 | Wallet support | Keplr, Cosmostation, WalletConnect | Keplr, Leap, Cosmostation, +20 | Keplr, Leap, Cosmostation, +more |
 | React hooks | `useChain()` | `useChain()` | `useCosmWasmSigningClient()` |
 | Bundle size | Larger | Medium | Lightweight |
+
+All approaches give you the same schemos DX — type-safe execute/query with autocomplete and runtime validation. The difference is only in how the signing client is obtained and whether an adapter is needed.

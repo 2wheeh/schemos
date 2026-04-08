@@ -13,6 +13,11 @@ pnpm add schemos
 ## Quick Start
 
 ```typescript twoslash
+import type { OfflineSigner } from '@cosmjs/proto-signing'
+declare const rpcEndpoint: string
+declare const signer: OfflineSigner
+declare const senderAddress: string
+// ---cut---
 // @errors: 2561 2322
 // @moduleResolution: bundler
 // @module: esnext
@@ -20,25 +25,16 @@ import { SigningCosmWasmClient } from '@cosmjs/cosmwasm-stargate'
 import { createTypedContract } from 'schemos'
 import { cw20 } from 'schemos/schemas'
 
-declare const client: SigningCosmWasmClient
-declare const senderAddress: string
-
+const client = await SigningCosmWasmClient.connectWithSigner(rpcEndpoint, signer)
 const token = createTypedContract(client, 'osmo1...', cw20)
 
 // Execute — message names autocomplete, fields are type-checked
-const result = await token.execute(
+await token.execute(
   senderAddress,
   'transfer',
   { recipient: 'osmo1...', amount: '1000' },
   'auto',
 )
-
-result.transactionHash
-//     ^|
-
-
-
-
 
 // Query — return type inferred from response schema
 const { balance } = await token.query('balance', { address: 'osmo1...' })
@@ -56,6 +52,13 @@ await token.query('balance', { address: 123 })
 
 | Import | Description |
 |--------|-------------|
-| `schemos` | `createTypedContract`, types, interfaces |
-| `schemos/schemas` | Bundled cw20, cw721 schemas |
-| `schemos/telescope` | Adapter for telescope-generated SDKs |
+| `schemos` | [`createTypedContract`](/api/create-typed-contract), [`createMsgBuilder`](/api/msg), [`createMsgValidator`](/api/msg#createmsgvalidator), [`Json`](/api/encoding), types |
+| `schemos/schemas` | Bundled [cw20, cw721](/api/schemas) schemas |
+| `schemos/telescope` | [Adapter](/api/telescope) for telescope-generated SDKs |
+
+## Next Steps
+
+- [Overview](/overview) — How it works, architecture, comparison
+- [API Reference](/api/create-typed-contract) — Full API documentation
+- [Custom Contracts](/guides/custom-contracts) — Use with your own contract schemas
+- [Integrations](/integrations/cosmjs) — cosmjs, telescope SDKs, wallet kits

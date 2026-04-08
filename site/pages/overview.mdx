@@ -1,0 +1,135 @@
+# Overview
+
+## How It Works
+
+```
+cargo schema → JSON Schema (as const) → schemos
+                                          ├─ compile time: json-schema-to-ts infers TS types
+                                          └─ runtime: Ajv validates before tx broadcast
+```
+
+Single source of truth. The same JSON Schema drives both type inference and runtime validation.
+
+[json-schema-to-ts](https://github.com/ThomasAriwortsell/json-schema-to-ts) (used by Fastify, 2M+ weekly downloads) handles compile-time inference. [Ajv](https://ajv.js.org/) (100M+ weekly downloads) handles runtime validation. schemos connects these to any CosmWasm client through a minimal interface.
+
+## Architecture
+
+schemos is organized into four layers:
+
+| Layer | Module | Role | Output |
+|-------|--------|------|--------|
+| **1** | `schemos/msg` | Type inference (zero runtime) | `InferMsg`, `MessageNames`, `MessageArgs`, `InferResponse` |
+| **2** | `schemos/msg` | Msg build + Ajv validation (with CosmWasm format validators) | `{ transfer: { amount, recipient } }` |
+| — | `schemos/encoding` | JSON encoding utilities | `Uint8Array`, `base64 string` |
+| **3** | `schemos/telescope` | Callback-based client adapter | `CosmWasmQueryClient`, `CosmWasmExecuteClient` |
+| **4** | `schemos` | Bind msg builder to client | `TypedContract`, `TypedQueryContract` |
+
+- **Layers 1–2** are schemos's core: type inference + validation from JSON Schema
+- **Layers 3–4** bridge to chain SDK message layers
+- Telescope/interchainjs users can use Layer 2 alone for typed msgs, then handle protobuf encoding with their own chain SDK
+
+## Why Factory Pattern
+
+schemos uses a factory pattern (`createTypedContract`, `createMsgBuilder`, `createMsgValidator`) instead of inline function calls:
+
+```ts twoslash
+// @moduleResolution: bundler
+// @module: esnext
+import { createMsgBuilder, createMsgValidator } from 'schemos'
+import { cw20 } from 'schemos/schemas'
+// ---cut---
+// ✅ Factory — FromSchema evaluated once at creation, reused across calls
+const cw20Msg = createMsgBuilder(cw20.execute)
+cw20Msg('transfer', { amount: '1000', recipient: 'osmo1...' })
+
+const validateInit = createMsgValidator(cw20.instantiate)
+validateInit({ name: 'Token', symbol: 'TKN', decimals: 6, initial_balances: [] })
+```
+
+EVM ABIs are flat arrays of function signatures. CosmWasm JSON Schemas use recursive `oneOf` with `$ref`/`definitions` — `FromSchema` must resolve all branches recursively, which is far more expensive for the type checker. Without the factory pattern, each call site re-evaluates `FromSchema` on the full schema, hitting TypeScript's instantiation depth limit (TS2589). The factory resolves it once at creation time and reuses the result across calls.
+
+:::note
+schemos patches `json-schema-to-ts` to raise its internal depth limit, but this is only available via pnpm's `patchedDependencies` until the [upstream PR](https://github.com/ThomasAribart/json-schema-to-ts/pull/230) is merged. The factory pattern is the actual solution — it works regardless of package manager.
+:::
+
+## Client Interface
+
+schemos does not depend on cosmjs, interchainjs, or any specific client. It defines a minimal interface that any CosmWasm client already satisfies:
+
+```ts
+interface CosmWasmQueryClient {
+  queryContractSmart(
+    address: string,
+    query: Record<string, unknown>,
+  ): Promise<unknown>
+}
+
+interface CosmWasmExecuteClient<TExecuteResult = unknown>
+  extends CosmWasmQueryClient {
+  execute(
+    sender: string,
+    address: string,
+    msg: Record<string, unknown>,
+    fee: StdFee | 'auto',
+    memo?: string,
+    funds?: readonly Coin[],
+  ): Promise<TExecuteResult>
+}
+```
+
+- cosmjs's `SigningCosmWasmClient` conforms as-is — no adapter needed
+- Telescope SDKs use protobuf RPCs with a different signature — schemos provides a [callback-based adapter](/api/telescope)
+- `TExecuteResult` captures the client's broadcast result type (e.g., cosmjs's `ExecuteResult`)
+- Query return types come from the schema, not the client
+
+## Why Telescope Adapter Uses Callbacks
+
+CosmWasm is an opt-in Cosmos SDK module. `MsgExecuteContract` lives in each chain's telescope package, not in a shared package:
+
+```
+@interchainjs/cosmos-types  → Cosmos SDK core only (no cosmwasm)
+
+Per-chain telescope packages:
+@xpla/xplajs               → cosmwasm/wasm/v1/tx
+osmojs                      → cosmwasm/wasm/v1/tx
+neutronjs                   → cosmwasm/wasm/v1/tx
+```
+
+Since each chain imports `MsgExecuteContract` from a different package, schemos cannot depend on any specific one. The adapter accepts callbacks so schemos stays chain-agnostic.
+
+## Why No cosmjs Adapter
+
+Layer 2 output (plain JS object envelope) is directly usable by cosmjs APIs:
+
+```ts
+// cosmjs — execute() accepts JsonObject (= any)
+await client.execute(sender, contract, envelope, fee)
+
+// graz — Record<string, unknown>
+executeContract({ msg: envelope, ... })
+```
+
+cosmjs's `SigningCosmWasmClient.execute()` handles `MsgExecuteContract` construction and protobuf encoding internally. schemos only needs to provide the typed `msg` field.
+
+## Comparison
+
+|                    | @cosmwasm/ts-codegen | Manual typing   | **schemos**              |
+|--------------------|----------------------|-----------------|--------------------------|
+| Approach           | Full codegen         | Hand-written    | JSON Schema → inference  |
+| Generated code     | Hundreds of lines    | 0               | 0                        |
+| Schema change      | Re-run + commit      | Manual update   | Replace JSON             |
+| Compile-time types | Yes                  | If maintained   | Yes                      |
+| Runtime validation | No                   | No              | Yes (Ajv)                |
+| Execute result     | cosmjs `ExecuteResult` | Any           | Inferred from client generic |
+| Query result       | Generated per query  | Manual per query | Inferred from response schema |
+| Client dependency  | cosmjs only          | Any             | Any (minimal interface)  |
+
+## EVM Analogy
+
+| Layer              | EVM                   | CosmWasm (with schemos) |
+|--------------------|-----------------------|-------------------------|
+| Contract language  | Solidity              | Rust (CosmWasm)         |
+| Schema output      | ABI JSON              | JSON Schema             |
+| Type inference     | abitype               | json-schema-to-ts       |
+| Runtime validation | viem (ABI validation) | Ajv                     |
+| Typed client       | viem                  | schemos                 |

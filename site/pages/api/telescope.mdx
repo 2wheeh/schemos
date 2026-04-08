@@ -1,0 +1,115 @@
+# Telescope Adapters
+
+Adapters for telescope-generated SDKs (xplajs, osmojs, neutronjs, ...) that use protobuf RPCs instead of cosmjs's JSON API.
+
+```ts
+import { createQueryAdapter, createExecuteAdapter } from 'schemos/telescope'
+```
+
+## Why Adapters?
+
+cosmjs's `SigningCosmWasmClient` conforms to schemos's [client interface](/overview#client-interface) directly. Telescope SDKs don't — they use protobuf-encoded `Uint8Array` messages and chain-specific RPC functions.
+
+The adapter bridges this gap with three user-provided callbacks, keeping schemos chain-agnostic. See [Why Callbacks](/overview#why-telescope-adapter-uses-callbacks) for the full rationale.
+
+## createQueryAdapter
+
+Wraps a telescope RPC query function into a `CosmWasmQueryClient`.
+
+```ts
+function createQueryAdapter(
+  smartContractState: SmartContractStateFn,
+): CosmWasmQueryClient
+```
+
+### Parameters
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `smartContractState` | `SmartContractStateFn` | Telescope RPC query function. All telescope SDKs export this at `cosmwasm.wasm.v1.smartContractState`. |
+
+See [Telescope SDKs integration](/integrations/telescope#query-adapter) for usage examples.
+
+## createExecuteAdapter
+
+Creates a full execute+query adapter from three callbacks.
+
+```ts
+function createExecuteAdapter<TExecuteResult>(
+  smartContractState: SmartContractStateFn,
+  signAndBroadcast: SignAndBroadcastFn<TExecuteResult>,
+  encodeMsgExecuteContract: EncodeMsgExecuteContractFn,
+): CosmWasmExecuteClient<TExecuteResult>
+```
+
+### Parameters
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `smartContractState` | `SmartContractStateFn` | Telescope RPC query function |
+| `signAndBroadcast` | `SignAndBroadcastFn` | Signing client's broadcast method |
+| `encodeMsgExecuteContract` | `EncodeMsgExecuteContractFn` | Protobuf encoder for `MsgExecuteContract` — provided from the chain's telescope package |
+
+See [Telescope SDKs integration](/integrations/telescope#execute-adapter) for usage examples.
+
+## Types
+
+### SmartContractStateFn
+
+```ts
+type SmartContractStateFn = (params: {
+  address: string
+  queryData: Uint8Array
+}) => Promise<{ data: Uint8Array }>
+```
+
+All telescope SDKs export a function matching this signature at `cosmwasm.wasm.v1.smartContractState`.
+
+### SignAndBroadcastFn
+
+```ts
+type SignAndBroadcastFn<TResult = unknown> = (
+  sender: string,
+  messages: readonly { typeUrl: string; value: Uint8Array }[],
+  fee: InterchainStdFee | 'auto',
+  memo?: string,
+) => Promise<TResult>
+```
+
+Accepts already-encoded protobuf messages. Each telescope SDK provides this via its signing client.
+
+### EncodeMsgExecuteContractFn
+
+```ts
+type EncodeMsgExecuteContractFn = (params: {
+  sender: string
+  contract: string
+  msg: Uint8Array
+  funds: readonly Coin[]
+}) => Uint8Array
+```
+
+Encodes contract execution params to `MsgExecuteContract` protobuf bytes. The pattern is identical across telescope packages — only the import path changes:
+
+```ts
+// xplajs
+import { MsgExecuteContract } from '@xpla/xplajs/cosmwasm/wasm/v1/tx'
+
+// osmojs
+import { MsgExecuteContract } from 'osmojs/cosmwasm/wasm/v1/tx'
+
+// neutronjs
+import { MsgExecuteContract } from 'neutronjs/cosmwasm/wasm/v1/tx'
+
+// All use the same encode pattern:
+const encode = (p) =>
+  MsgExecuteContract.encode(
+    MsgExecuteContract.fromPartial({ ...p, funds: [...p.funds] }),
+  ).finish()
+```
+
+## Internal Behavior
+
+- `createQueryAdapter` uses [`Json.toBytes`](/api/encoding#jsontoBytes) and [`Json.fromBytes`](/api/encoding#jsonfromBytes) for query encoding/decoding
+- `createExecuteAdapter` composes `createQueryAdapter` internally, then adds `execute` using `Json.toBytes` for the msg field
+- The adapter constructs `MsgExecuteContract` with typeUrl `/cosmwasm.wasm.v1.MsgExecuteContract`

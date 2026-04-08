@@ -1,0 +1,85 @@
+# Schemas
+
+Bundled JSON Schemas for standard CosmWasm contracts.
+
+```ts
+import { cw20, cw721 } from 'schemos/schemas'
+```
+
+## cw20
+
+Fungible token standard (CW20). Includes execute, query, and response schemas.
+
+```ts
+import { cw20 } from 'schemos/schemas'
+
+const token = createTypedContract(client, addr, cw20)
+```
+
+### Execute messages
+
+`transfer`, `burn`, `send`, `mint`, `increase_allowance`, `decrease_allowance`, `transfer_from`, `send_from`, `burn_from`, `update_marketing`, `upload_logo`, `update_minter`
+
+### Query messages
+
+`balance`, `token_info`, `minter`, `allowance`, `all_allowances`, `all_spender_allowances`, `all_accounts`, `marketing_info`, `download_logo`
+
+### Individual imports
+
+```ts
+import {
+  cw20ExecuteSchema,
+  cw20QuerySchema,
+  cw20ResponseSchemas,
+} from 'schemos/schemas'
+```
+
+## cw721
+
+Non-fungible token standard (CW721). Includes execute, query, and response schemas.
+
+```ts
+import { cw721 } from 'schemos/schemas'
+
+const nft = createTypedContract(client, addr, cw721)
+```
+
+### Execute messages
+
+`transfer_nft`, `send_nft`, `approve`, `revoke`, `approve_all`, `revoke_all`, `mint`, `burn`, `extension`
+
+### Query messages
+
+`owner_of`, `approval`, `approvals`, `all_operators`, `num_tokens`, `contract_info`, `nft_info`, `all_nft_info`, `tokens`, `all_tokens`, `minter`, `extension`, `ownership`
+
+### Individual imports
+
+```ts
+import {
+  cw721ExecuteSchema,
+  cw721QuerySchema,
+  cw721ResponseSchemas,
+} from 'schemos/schemas'
+```
+
+## Schema Structure
+
+Each bundled schema is a `{ execute, query, responses }` object:
+
+```ts
+const cw20: {
+  execute: /* execute msg JSON Schema */
+  query: /* query msg JSON Schema */
+  responses: {
+    balance: /* balance response JSON Schema */
+    token_info: /* token_info response JSON Schema */
+    // ... one per query message
+  }
+}
+```
+
+The `responses` map keys correspond to query message names. Each value is the JSON Schema for that query's response type.
+
+## Using Your Own Schemas
+
+For custom contracts, see [Custom Contracts](/guides/custom-contracts).
