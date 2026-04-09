@@ -1,5 +1,11 @@
 # schemos
 
+## 0.2.1
+
+### Patch Changes
+
+- [#19](https://github.com/2wheeh/schemos/pull/19) [`22fc665`](https://github.com/2wheeh/schemos/commit/22fc66587917c02731d038e637895c8b61ed8347) Thanks [@2wheeh](https://github.com/2wheeh)! - support Tuple by pnpm patch for now
+
 ## 0.2.0
 
 ### Minor Changes
