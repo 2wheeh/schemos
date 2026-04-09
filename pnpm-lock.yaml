@@ -12,7 +12,7 @@ catalogs:
 
 patchedDependencies:
   json-schema-to-ts:
-    hash: a771b5151158b86f5e21a6e0f99189f8939dff60ee361d6cab944f5d4794f671
+    hash: 4c7fee2740cf71cdeb38620aa7d16f735f10509b212cf1e1409ff88c1c10eecc
     path: patches/json-schema-to-ts.patch
 
 importers:
@@ -42,7 +42,7 @@ importers:
         version: 8.18.0
       json-schema-to-ts:
         specifier: ^3.1.1
-        version: 3.1.1(patch_hash=a771b5151158b86f5e21a6e0f99189f8939dff60ee361d6cab944f5d4794f671)
+        version: 3.1.1(patch_hash=4c7fee2740cf71cdeb38620aa7d16f735f10509b212cf1e1409ff88c1c10eecc)
     devDependencies:
       '@ark/attest':
         specifier: ^0.56.0
@@ -13848,7 +13848,7 @@ snapshots:
 
   jsesc@3.1.0: {}
 
-  json-schema-to-ts@3.1.1(patch_hash=a771b5151158b86f5e21a6e0f99189f8939dff60ee361d6cab944f5d4794f671):
+  json-schema-to-ts@3.1.1(patch_hash=4c7fee2740cf71cdeb38620aa7d16f735f10509b212cf1e1409ff88c1c10eecc):
     dependencies:
       '@babel/runtime': 7.29.2
       ts-algebra: 2.0.0

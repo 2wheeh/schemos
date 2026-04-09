@@ -1,3 +1,18 @@
+diff --git a/lib/types/parse-schema/array.d.ts b/lib/types/parse-schema/array.d.ts
+index d326d5b988ff11ef3f3e23dfb16ef4a2cb0e0a75..db0892e4cf33a4df643c4bafbc6679aef9b88ecf 100644
+--- a/lib/types/parse-schema/array.d.ts
++++ b/lib/types/parse-schema/array.d.ts
+@@ -13,7 +13,9 @@ export type TupleSchema = JSONSchema & Readonly<{
+     type: "array";
+     items: readonly JSONSchema[];
+ }>;
+-export type ParseArrayOrTupleSchema<ARRAY_OR_TUPLE_SCHEMA extends ArrayOrTupleSchema, OPTIONS extends ParseSchemaOptions> = ARRAY_OR_TUPLE_SCHEMA extends ArraySchema ? M.$Array<ParseSchema<ARRAY_OR_TUPLE_SCHEMA["items"], OPTIONS>> : ARRAY_OR_TUPLE_SCHEMA extends TupleSchema ? M.$Union<ApplyMinMaxAndAdditionalItems<ParseTupleItems<ARRAY_OR_TUPLE_SCHEMA["items"], OPTIONS>, ARRAY_OR_TUPLE_SCHEMA, OPTIONS>> : M.$Array;
++export type ParseArrayOrTupleSchema<ARRAY_OR_TUPLE_SCHEMA extends ArrayOrTupleSchema, OPTIONS extends ParseSchemaOptions> = ARRAY_OR_TUPLE_SCHEMA extends ArraySchema ? ParseArraySchema<ARRAY_OR_TUPLE_SCHEMA, OPTIONS> : ARRAY_OR_TUPLE_SCHEMA extends TupleSchema ? M.$Union<ApplyMinMaxAndAdditionalItems<ParseTupleItems<ARRAY_OR_TUPLE_SCHEMA["items"], OPTIONS>, ARRAY_OR_TUPLE_SCHEMA, OPTIONS>> : M.$Array;
++type Repeat<T, N extends number, ACC extends any[] = []> = ACC["length"] extends N ? ACC : Repeat<T, N, [...ACC, T]>;
++type ParseArraySchema<ARRAY_SCHEMA extends ArraySchema, OPTIONS extends ParseSchemaOptions> = ARRAY_SCHEMA extends Readonly<{ minItems: infer MIN extends number; maxItems: infer MAX extends number; }> ? MIN extends MAX ? M.$Tuple<Repeat<ParseSchema<ARRAY_SCHEMA["items"], OPTIONS>, MAX>> : M.$Array<ParseSchema<ARRAY_SCHEMA["items"], OPTIONS>> : M.$Array<ParseSchema<ARRAY_SCHEMA["items"], OPTIONS>>;
+ type ParseTupleItems<ITEM_SCHEMAS extends readonly JSONSchema[], OPTIONS extends ParseSchemaOptions> = ITEM_SCHEMAS extends readonly [
+     infer ITEM_SCHEMAS_HEAD,
+     ...infer ITEM_SCHEMAS_TAIL
 diff --git a/lib/types/parse-schema/references/utils.d.ts b/lib/types/parse-schema/references/utils.d.ts
 index bf548f41d384ca99af94004c053cb50488171b5f..2a4bb07c8baeea213175c2573ce53e82161b5c29 100644
 --- a/lib/types/parse-schema/references/utils.d.ts
