@@ -54,3 +54,39 @@ describe('Json.fromBytes', () => {
     expect(Json.fromBytes(bytes)).toEqual(original)
   })
 })
+
+describe('Json.fromBase64', () => {
+  test('roundtrips with Json.toBase64', () => {
+    const original = { execute_swap: { offer_asset: 'uosmo' } }
+    expect(Json.fromBase64(Json.toBase64(original))).toEqual(original)
+  })
+
+  test('decodes a known base64 string', () => {
+    // btoa('{"action":"swap"}') === 'eyJhY3Rpb24iOiJzd2FwIn0='
+    expect(Json.fromBase64('eyJhY3Rpb24iOiJzd2FwIn0=')).toEqual({
+      action: 'swap',
+    })
+  })
+
+  test('handles 1-byte remainder (== padding)', () => {
+    // '{"a":1}' is 7 bytes → 7 % 3 === 1 → two '=' padding chars
+    const original = { a: 1 }
+    const b64 = Json.toBase64(original)
+    expect(b64.endsWith('==')).toBe(true)
+    expect(Json.fromBase64(b64)).toEqual(original)
+  })
+
+  test('handles 2-byte remainder (= padding)', () => {
+    // '{"ab":1}' is 8 bytes → 8 % 3 === 2 → one '=' padding char
+    const original = { ab: 1 }
+    const b64 = Json.toBase64(original)
+    expect(b64.endsWith('=')).toBe(true)
+    expect(Json.fromBase64(b64)).toEqual(original)
+  })
+
+  test('decodes cw20 send hook msg pattern', () => {
+    const hookMsg = { execute_swap: { offer_asset: 'uosmo' } }
+    const b64 = Json.toBase64(hookMsg)
+    expect(Json.fromBase64(b64)).toEqual(hookMsg)
+  })
+})

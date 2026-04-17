@@ -15,12 +15,37 @@ const integerToCharacter = /*#__PURE__*/ Object.fromEntries(
   ).map((c, i) => [i, c.charCodeAt(0)]),
 )
 
+const characterToInteger = /*#__PURE__*/ Object.fromEntries(
+  Array.from(
+    'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/',
+  ).map((c, i) => [c.charCodeAt(0), i]),
+)
+
 function utf8Encode(str: string): Uint8Array {
   return textEncoder.encode(str)
 }
 
 function utf8Decode(bytes: Uint8Array): string {
   return textDecoder.decode(bytes)
+}
+
+function base64Decode(b64: string): Uint8Array {
+  const withoutPadding = b64.replace(/=+$/, '')
+  const length = Math.floor((withoutPadding.length * 3) / 4)
+  const decoded = new Uint8Array(length)
+
+  for (let i = 0, j = 0; i < withoutPadding.length; i += 4, j += 3) {
+    const a = characterToInteger[withoutPadding.charCodeAt(i)]! << 18
+    const b = (characterToInteger[withoutPadding.charCodeAt(i + 1)] ?? 0) << 12
+    const c = (characterToInteger[withoutPadding.charCodeAt(i + 2)] ?? 0) << 6
+    const d = characterToInteger[withoutPadding.charCodeAt(i + 3)] ?? 0
+    const y = a | b | c | d
+    decoded[j] = (y >> 16) & 0xff
+    if (j + 1 < length) decoded[j + 1] = (y >> 8) & 0xff
+    if (j + 2 < length) decoded[j + 2] = y & 0xff
+  }
+
+  return decoded
 }
 
 function base64Encode(bytes: Uint8Array): string {
@@ -104,5 +129,24 @@ export const Json = {
    */
   fromBytes(bytes: Uint8Array): unknown {
     return JSON.parse(utf8Decode(bytes))
+  },
+
+  /**
+   * Decode a base64 string to a JSON object.
+   *
+   * Use for decoding CosmWasm `Binary` response fields (e.g. cw20 send hook
+   * messages on the receiving contract).
+   *
+   * @example
+   * ```ts
+   * import { Json } from 'schemos/encoding'
+   *
+   * // Decode the `msg` field from a cw20 Receive callback
+   * const hookMsg = Json.fromBase64(receiveMsg.msg)
+   * // hookMsg => { execute_swap: { offer_asset: 'uosmo' } }
+   * ```
+   */
+  fromBase64(b64string: string): unknown {
+    return JSON.parse(utf8Decode(base64Decode(b64string)))
   },
 } as const
